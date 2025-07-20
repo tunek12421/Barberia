@@ -28,6 +28,7 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
   const trackRef = useRef(null);
   const autoPlayRef = useRef(null);
   const animationRef = useRef(null);
+  const goToSlideRef = useRef(null);
   const touchStateRef = useRef({
     startX: 0,
     startY: 0,
@@ -40,12 +41,17 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
   });
 
   // Device capabilities
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    isLowEnd: isLowEndDevice(),
-    reducedMotion: prefersReducedMotion(),
-    canHover: canHover()
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice(),
+      reducedMotion: prefersReducedMotion(),
+      canHover: canHover()
+    };
+  }, []);
 
   // Determine navigation mode based on device and viewport
   const determineNavigationMode = useCallback(() => {
@@ -53,11 +59,11 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     
     const width = containerRef.current.offsetWidth;
     
-    if (deviceInfo.type.isMobile) return 'dots';
+    if (deviceInfo.isMobile) return 'dots';
     if (width < 768) return 'dots';
     if (width < 1024) return 'arrows';
     return 'continuous';
-  }, [deviceInfo.type.isMobile]);
+  }, [deviceInfo.isMobile]);
 
   // Update navigation mode on resize
   useEffect(() => {
@@ -119,7 +125,7 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
         const targetIndex = Math.round(-currentOffset / slideWidth);
         const clampedIndex = Math.max(0, Math.min(targetIndex, items.length - 1));
         
-        goToSlide(clampedIndex);
+        goToSlideRef.current?.(clampedIndex);
         setDragOffset(0);
       }
     };
@@ -129,7 +135,11 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
 
   // Navigation functions
   const goToSlide = useCallback((index, userInitiated = false) => {
-    if (isTransitioning && !userInitiated) return;
+    // Use refs to get current state without causing dependency updates
+    const currentIdx = currentIndex;
+    const isCurrentlyTransitioning = isTransitioning;
+    
+    if (isCurrentlyTransitioning && !userInitiated) return;
     
     let newIndex = index;
     
@@ -139,7 +149,7 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
       newIndex = Math.max(0, Math.min(index, items.length - 1));
     }
     
-    if (newIndex !== currentIndex) {
+    if (newIndex !== currentIdx) {
       setIsTransitioning(true);
       setCurrentIndex(newIndex);
       onSlideChange && onSlideChange(newIndex, userInitiated);
@@ -149,15 +159,18 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
         setIsTransitioning(false);
       }, transitionDuration);
     }
-  }, [currentIndex, items.length, infinite, isTransitioning, transitionDuration, onSlideChange]);
+  }, [items.length, infinite, transitionDuration, onSlideChange]);
+
+  // Update ref with current function
+  goToSlideRef.current = goToSlide;
 
   const nextSlide = useCallback((userInitiated = true) => {
-    goToSlide(currentIndex + 1, userInitiated);
-  }, [currentIndex, goToSlide]);
+    goToSlideRef.current?.(currentIndex + 1, userInitiated);
+  }, [currentIndex]);
 
   const prevSlide = useCallback((userInitiated = true) => {
-    goToSlide(currentIndex - 1, userInitiated);
-  }, [currentIndex, goToSlide]);
+    goToSlideRef.current?.(currentIndex - 1, userInitiated);
+  }, [currentIndex]);
 
   // Auto-play functionality
   useEffect(() => {
@@ -170,7 +183,7 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
 
     autoPlayRef.current = setInterval(() => {
       if (!isDragging && !isTransitioning) {
-        nextSlide(false);
+        goToSlideRef.current?.(currentIndex + 1, false);
       }
     }, autoPlayDelay);
 
@@ -185,9 +198,8 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     items.length, 
     isDragging, 
     isTransitioning,
-    nextSlide, 
     autoPlayDelay
-  ]);
+  ]); // Remove currentIndex to prevent infinite loop
 
   // Auto-play controls
   const pauseAutoPlay = useCallback(() => {
@@ -335,29 +347,29 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
 
   // Mouse event handlers for desktop
   const handleMouseDown = useCallback((event) => {
-    if (deviceInfo.type.isMobile || !enableSwipe) return;
+    if (deviceInfo.isMobile || !enableSwipe) return;
 
     const fakeTouch = {
       touches: [{ clientX: event.clientX, clientY: event.clientY }],
       preventDefault: () => event.preventDefault()
     };
     handleTouchStart(fakeTouch);
-  }, [deviceInfo.type.isMobile, enableSwipe, handleTouchStart]);
+  }, [deviceInfo.isMobile, enableSwipe, handleTouchStart]);
 
   const handleMouseMove = useCallback((event) => {
-    if (deviceInfo.type.isMobile || !touchStateRef.current.isDragging) return;
+    if (deviceInfo.isMobile || !touchStateRef.current.isDragging) return;
 
     const fakeTouch = {
       touches: [{ clientX: event.clientX, clientY: event.clientY }],
       preventDefault: () => event.preventDefault()
     };
     handleTouchMove(fakeTouch);
-  }, [deviceInfo.type.isMobile, handleTouchMove]);
+  }, [deviceInfo.isMobile, handleTouchMove]);
 
   const handleMouseUp = useCallback(() => {
-    if (deviceInfo.type.isMobile || !touchStateRef.current.isDragging) return;
+    if (deviceInfo.isMobile || !touchStateRef.current.isDragging) return;
     handleTouchEnd();
-  }, [deviceInfo.type.isMobile, handleTouchEnd]);
+  }, [deviceInfo.isMobile, handleTouchEnd]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -395,7 +407,7 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     container.addEventListener('touchmove', handleTouchMove, { passive: false });
     container.addEventListener('touchend', handleTouchEnd, { passive: true });
 
-    if (!deviceInfo.type.isMobile) {
+    if (!deviceInfo.isMobile) {
       container.addEventListener('mousedown', handleMouseDown);
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -406,7 +418,7 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
 
-      if (!deviceInfo.type.isMobile) {
+      if (!deviceInfo.isMobile) {
         container.removeEventListener('mousedown', handleMouseDown);
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
@@ -423,7 +435,7 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-    deviceInfo.type.isMobile
+    deviceInfo.isMobile
   ]);
 
   // Get transform for current slide
@@ -458,12 +470,12 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     const classes = ['carousel-nav'];
     classes.push(`carousel-nav--${navigationMode}`);
     
-    if (deviceInfo.type.isMobile) {
+    if (deviceInfo.isMobile) {
       classes.push('carousel-nav--mobile');
     }
     
     return classes.join(' ');
-  }, [navigationMode, deviceInfo.type.isMobile]);
+  }, [navigationMode, deviceInfo.isMobile]);
 
   return {
     // State

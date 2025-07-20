@@ -10,11 +10,16 @@ export const useParallax = (options = {}) => {
   const lastScrollY = useRef(0);
 
   // Device capabilities detection (memoized to prevent re-renders)
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    isLowEnd: isLowEndDevice(),
-    reducedMotion: prefersReducedMotion()
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice(),
+      reducedMotion: prefersReducedMotion()
+    };
+  }, []);
 
   // Optimized scroll handler with throttling
   const handleScroll = useCallback(() => {
@@ -81,7 +86,7 @@ export const useParallax = (options = {}) => {
     }
 
     // Reduce parallax intensity on mobile devices for performance
-    const adjustedFactor = deviceInfo.type.isMobile || deviceInfo.isLowEnd 
+    const adjustedFactor = deviceInfo.isMobile || deviceInfo.isLowEnd 
       ? factor * 0.3 
       : factor;
 
@@ -99,7 +104,7 @@ export const useParallax = (options = {}) => {
     };
 
     // Additional optimizations for low-end devices
-    if (deviceInfo.isLowEnd || deviceInfo.type.isMobile) {
+    if (deviceInfo.isLowEnd || deviceInfo.isMobile) {
       return {
         ...baseStyle,
         backfaceVisibility: 'hidden',
@@ -114,7 +119,7 @@ export const useParallax = (options = {}) => {
   // Calculate parallax offset directly
   const parallaxOffset = deviceInfo.reducedMotion || disabled || !isInView 
     ? 0 
-    : scrollY * (deviceInfo.type.isMobile || deviceInfo.isLowEnd ? factor * 0.3 : factor);
+    : scrollY * (deviceInfo.isMobile || deviceInfo.isLowEnd ? factor * 0.3 : factor);
 
   return {
     elementRef,

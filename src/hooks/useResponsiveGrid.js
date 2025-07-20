@@ -25,21 +25,26 @@ export const useResponsiveGrid = (items = [], options = {}) => {
   const [isInfiniteLoading, setIsInfiniteLoading] = useState(false);
 
   // Device capabilities
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    screenCategory: getScreenCategory(),
-    isLowEnd: isLowEndDevice(),
-    canHover: canHover(),
-    hasPointerFine: hasPointerFine(),
-    reducedMotion: prefersReducedMotion()
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      screenCategory: getScreenCategory(),
+      isLowEnd: isLowEndDevice(),
+      canHover: canHover(),
+      hasPointerFine: hasPointerFine(),
+      reducedMotion: prefersReducedMotion()
+    };
+  }, []);
 
   // Calculate optimal grid configuration
   const gridConfig = useMemo(() => {
     if (!containerWidth) return { columns: 1, itemWidth: minItemWidth, gap };
 
     // Adjust parameters based on device
-    const adjustedGap = deviceInfo.type.isMobile ? Math.max(gap * 0.7, 16) : gap;
+    const adjustedGap = deviceInfo.isMobile ? Math.max(gap * 0.7, 16) : gap;
     const adjustedMinWidth = deviceInfo.screenCategory === 'xs-mobile' 
       ? Math.max(minItemWidth * 0.8, 240) 
       : minItemWidth;
@@ -179,7 +184,7 @@ export const useResponsiveGrid = (items = [], options = {}) => {
     };
 
     // Add scroll snap for mobile if enabled
-    if (deviceInfo.type.isMobile && scrollSnapType && gridConfig.columns === 1) {
+    if (deviceInfo.isMobile && scrollSnapType && gridConfig.columns === 1) {
       return {
         ...baseStyles,
         scrollSnapType,
@@ -189,7 +194,7 @@ export const useResponsiveGrid = (items = [], options = {}) => {
     }
 
     return baseStyles;
-  }, [gridConfig, deviceInfo.type.isMobile, scrollSnapType]);
+  }, [gridConfig, deviceInfo.isMobile, scrollSnapType]);
 
   // Item styles
   const getItemStyles = useCallback(() => {
@@ -199,14 +204,14 @@ export const useResponsiveGrid = (items = [], options = {}) => {
       : 1.2;
 
     const baseStyles = {
-      aspectRatio: deviceInfo.type.isMobile ? 'auto' : aspectRatio,
-      minHeight: deviceInfo.type.isMobile ? `${gridConfig.itemWidth * ratio}px` : 'auto',
+      aspectRatio: deviceInfo.isMobile ? 'auto' : aspectRatio,
+      minHeight: deviceInfo.isMobile ? `${gridConfig.itemWidth * ratio}px` : 'auto',
       width: '100%',
-      scrollSnapAlign: deviceInfo.type.isMobile ? 'start' : 'unset'
+      scrollSnapAlign: deviceInfo.isMobile ? 'start' : 'unset'
     };
 
     return baseStyles;
-  }, [aspectRatio, gridConfig.itemWidth, deviceInfo.type.isMobile]);
+  }, [aspectRatio, gridConfig.itemWidth, deviceInfo.isMobile]);
 
   // Load more handler for pagination
   const loadMore = useCallback(() => {
@@ -222,7 +227,7 @@ export const useResponsiveGrid = (items = [], options = {}) => {
 
   // Touch interaction helpers
   const getTouchProps = useCallback(() => {
-    if (!deviceInfo.type.isMobile) return {};
+    if (!deviceInfo.isMobile) return {};
 
     return {
       style: {
@@ -231,7 +236,7 @@ export const useResponsiveGrid = (items = [], options = {}) => {
         msOverflowStyle: 'none'
       }
     };
-  }, [deviceInfo.type.isMobile]);
+  }, [deviceInfo.isMobile]);
 
   return {
     containerRef,

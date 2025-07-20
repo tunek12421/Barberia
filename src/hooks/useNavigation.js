@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export const useNavigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollDirection, setScrollDirection] = useState('up');
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollYRef = useRef(0);
 
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY;
@@ -11,15 +11,15 @@ export const useNavigation = () => {
     // Update scroll state
     setIsScrolled(currentScrollY > 50);
     
-    // Determine scroll direction
-    if (currentScrollY > lastScrollY && currentScrollY > 100) {
+    // Determine scroll direction using ref
+    if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
       setScrollDirection('down');
     } else {
       setScrollDirection('up');
     }
     
-    setLastScrollY(currentScrollY);
-  }, [lastScrollY]);
+    lastScrollYRef.current = currentScrollY;
+  }, []); // Stable callback with no dependencies
 
   useEffect(() => {
     let timeoutId = null;

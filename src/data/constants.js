@@ -155,3 +155,146 @@ export const galleryImages = [
     featured: true
   }
 ];
+
+// Footer Data Structure
+export const footerData = {
+  company: {
+    name: 'THE GENTLEMAN\'S CLUB',
+    tagline: 'EST. 1995 • EXCELLENCE IN EVERY DETAIL',
+    description: 'Redefiniendo el lujo masculino desde 1995. Experiencias excepcionales en un ambiente de distinción y elegancia.',
+    logo: {
+      text: 'THE GENTLEMAN\'S CLUB',
+      subtitle: 'Barbería Premium'
+    }
+  },
+  
+  navigation: {
+    services: {
+      title: 'Servicios',
+      links: [
+        { name: 'Corte Premium', href: '#servicios', id: 'corte' },
+        { name: 'Afeitado Real', href: '#servicios', id: 'afeitado' },
+        { name: 'Tratamiento Capilar', href: '#servicios', id: 'tratamiento' },
+        { name: 'Experiencia VIP', href: '#servicios', id: 'vip' },
+        { name: 'Paquetes Premium', href: '#servicios', id: 'paquetes' }
+      ]
+    },
+    company: {
+      title: 'Nosotros',
+      links: [
+        { name: 'Nuestro Equipo', href: '#barberos', id: 'team' },
+        { name: 'Historia', href: '#historia', id: 'history' },
+        { name: 'Filosofía', href: '#filosofia', id: 'philosophy' },
+        { name: 'Testimonios', href: '#testimonios', id: 'testimonials' },
+        { name: 'Galería', href: '#galeria', id: 'gallery' }
+      ]
+    },
+    support: {
+      title: 'Soporte',
+      links: [
+        { name: 'Reservar Cita', href: '#reservar', id: 'booking' },
+        { name: 'Política de Cancelación', href: '#politicas', id: 'cancellation' },
+        { name: 'Gift Cards', href: '#gift-cards', id: 'gifts' },
+        { name: 'Programa de Lealtad', href: '#loyalty', id: 'loyalty' },
+        { name: 'FAQ', href: '#faq', id: 'faq' }
+      ]
+    }
+  },
+  
+  contact: {
+    title: 'Contacto',
+    address: {
+      street: '123 Luxury Avenue',
+      city: 'Miami',
+      state: 'FL',
+      zip: '33101',
+      country: 'USA',
+      full: '123 Luxury Avenue, Miami, FL 33101'
+    },
+    phone: {
+      primary: '+1 (305) 555-0123',
+      display: '305.555.0123',
+      href: 'tel:+13055550123'
+    },
+    email: {
+      primary: 'contact@gentlemansclub.com',
+      reservations: 'reservas@gentlemansclub.com',
+      support: 'soporte@gentlemansclub.com'
+    },
+    hours: {
+      weekdays: 'Lun - Vie: 9:00 AM - 8:00 PM',
+      saturday: 'Sábado: 8:00 AM - 6:00 PM',
+      sunday: 'Domingo: 10:00 AM - 4:00 PM'
+    }
+  },
+  
+  social: {
+    title: 'Síguenos',
+    platforms: [
+      {
+        name: 'Instagram',
+        href: 'https://instagram.com/gentlemansclub',
+        icon: 'Instagram',
+        handle: '@gentlemansclub',
+        color: '#E4405F'
+      },
+      {
+        name: 'Facebook',
+        href: 'https://facebook.com/gentlemansclub',
+        icon: 'Facebook',
+        handle: 'The Gentleman\'s Club',
+        color: '#1877F2'
+      },
+      {
+        name: 'Twitter',
+        href: 'https://twitter.com/gentlemansclub',
+        icon: 'Twitter',
+        handle: '@gentlemansclub',
+        color: '#1DA1F2'
+      },
+      {
+        name: 'TikTok',
+        href: 'https://tiktok.com/@gentlemansclub',
+        icon: 'Music',
+        handle: '@gentlemansclub',
+        color: '#FF0050'
+      },
+      {
+        name: 'YouTube',
+        href: 'https://youtube.com/gentlemansclub',
+        icon: 'Youtube',
+        handle: 'The Gentleman\'s Club',
+        color: '#FF0000'
+      }
+    ]
+  },
+  
+  newsletter: {
+    title: 'Newsletter Exclusivo',
+    subtitle: 'Ofertas especiales y tips de grooming',
+    placeholder: 'Tu email...',
+    buttonText: 'Suscribirse',
+    privacy: 'Respetamos tu privacidad. Sin spam.',
+    benefits: [
+      'Descuentos exclusivos',
+      'Tips de grooming',
+      'Nuevos servicios',
+      'Eventos especiales'
+    ]
+  },
+  
+  legal: {
+    copyright: '© 2025 The Gentleman\'s Club. Todos los derechos reservados.',
+    links: [
+      { name: 'Política de Privacidad', href: '/privacidad', id: 'privacy' },
+      { name: 'Términos de Servicio', href: '/terminos', id: 'terms' },
+      { name: 'Política de Cookies', href: '/cookies', id: 'cookies' },
+      { name: 'Política de Reembolso', href: '/reembolso', id: 'refund' }
+    ],
+    certifications: [
+      'Certificado de Calidad ISO 9001',
+      'Miembro de la Asociación de Barberos de América',
+      'Compromiso con la Sostenibilidad'
+    ]
+  }
+};

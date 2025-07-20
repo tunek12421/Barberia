@@ -138,8 +138,7 @@ export const useLazyLoading = (options = {}) => {
 export const useLazyGrid = (items = [], options = {}) => {
   const {
     batchSize = 4,
-    staggerDelay = 100,
-    ...lazyOptions
+    staggerDelay = 100
   } = options;
 
   const [loadedItems, setLoadedItems] = useState(new Set());

@@ -38,7 +38,6 @@ const ServicesSection = () => {
   const {
     containerRef,
     gridConfig,
-    paginatedItems,
     getGridStyles,
     getItemStyles,
     getTouchProps
@@ -57,7 +56,6 @@ const ServicesSection = () => {
     <section 
       id="servicios" 
       className="services-section"
-      role="region"
       aria-labelledby="services-title"
     >
       <div className="services-section__container">
@@ -127,8 +125,6 @@ const ServiceCard = ({ service, index, shouldLoad, deviceInfo, gridConfig, getIt
   const {
     elementRef,
     isIntersecting,
-    isLoaded,
-    isError,
     handleImageLoad
   } = useLazyLoading({
     threshold: deviceInfo.isLowEnd ? 0.05 : 0.1,

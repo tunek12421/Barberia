@@ -39,15 +39,20 @@ export const useLightbox = (images = [], options = {}) => {
   });
 
   // Device capabilities
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    isLowEnd: isLowEndDevice(),
-    reducedMotion: prefersReducedMotion(),
-    supportsFullscreen: !!(document.fullscreenEnabled || 
-      document.webkitFullscreenEnabled || 
-      document.mozFullScreenEnabled || 
-      document.msFullscreenEnabled)
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice(),
+      reducedMotion: prefersReducedMotion(),
+      supportsFullscreen: !!(document.fullscreenEnabled || 
+        document.webkitFullscreenEnabled || 
+        document.mozFullScreenEnabled || 
+        document.msFullscreenEnabled)
+    };
+  }, []);
 
   // Adjusted settings for device performance
   const adjustedSettings = useMemo(() => ({
@@ -89,6 +94,18 @@ export const useLightbox = (images = [], options = {}) => {
     }
   }, [images, deviceInfo.reducedMotion, adjustedSettings.animationDuration, onOpen]);
 
+  const exitFullscreen = useCallback(() => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }, []);
+
   // Close lightbox
   const closeLightbox = useCallback(() => {
     setIsAnimating(true);
@@ -122,7 +139,7 @@ export const useLightbox = (images = [], options = {}) => {
     } else {
       finishClose();
     }
-  }, [deviceInfo.reducedMotion, adjustedSettings.animationDuration, isFullscreen, onClose]);
+  }, [deviceInfo.reducedMotion, adjustedSettings.animationDuration, isFullscreen, onClose, exitFullscreen]);
 
   // Navigate to specific image
   const goToImage = useCallback((index) => {
@@ -199,18 +216,6 @@ export const useLightbox = (images = [], options = {}) => {
       element.msRequestFullscreen();
     }
   }, [deviceInfo.supportsFullscreen]);
-
-  const exitFullscreen = useCallback(() => {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
-  }, []);
 
   const toggleFullscreen = useCallback(() => {
     if (isFullscreen) {
@@ -390,7 +395,7 @@ export const useLightbox = (images = [], options = {}) => {
 
   // Preload adjacent images
   useEffect(() => {
-    if (!isOpen || !currentImage) return;
+    if (!isOpen || currentIndex < 0 || currentIndex >= images.length) return;
     
     const preloadPromises = [];
     
@@ -496,7 +501,7 @@ export const useLightbox = (images = [], options = {}) => {
     if (isOpen) classes.push('lightbox--open');
     if (isAnimating) classes.push('lightbox--animating');
     if (isFullscreen) classes.push('lightbox--fullscreen');
-    if (deviceInfo.type.isMobile) classes.push('lightbox--mobile');
+    if (deviceInfo.isMobile) classes.push('lightbox--mobile');
     if (deviceInfo.reducedMotion) classes.push('lightbox--no-animation');
     
     return classes.join(' ');

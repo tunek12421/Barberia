@@ -17,11 +17,16 @@ export const useModalStates = (options = {}) => {
   const previousFocusRef = useRef(null);
   const bodyScrollPositionRef = useRef(0);
 
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    isLowEnd: isLowEndDevice(),
-    reducedMotion: prefersReducedMotion()
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice(),
+      reducedMotion: prefersReducedMotion()
+    };
+  }, []);
 
   // Adjusted animation duration for device capabilities
   const adjustedDuration = deviceInfo.reducedMotion ? 0 : 
@@ -142,6 +147,9 @@ export const useModalStates = (options = {}) => {
           }
         }
         break;
+      default:
+        // No action needed for other keys
+        break;
     }
   }, [isOpen, closeOnEscape, focusTrap, closeModal]);
 
@@ -190,7 +198,7 @@ export const useModalStates = (options = {}) => {
     return [
       baseClass,
       `${baseClass}--${state}`,
-      deviceInfo.type.isMobile ? `${baseClass}--mobile` : `${baseClass}--desktop`,
+      deviceInfo.isMobile ? `${baseClass}--mobile` : `${baseClass}--desktop`,
       deviceInfo.reducedMotion ? `${baseClass}--no-animation` : ''
     ].filter(Boolean).join(' ');
   }, [getModalState, deviceInfo]);
@@ -222,10 +230,15 @@ export const usePerformanceMonitoring = (componentName = 'Component') => {
 
   const renderStartTimeRef = useRef(0);
   const renderTimesRef = useRef([]);
-  const deviceInfo = useMemo(() => ({
-    isLowEnd: isLowEndDevice(),
-    type: getDeviceType()
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice()
+    };
+  }, []);
 
   // Start performance measurement
   const startMeasurement = useCallback(() => {
@@ -265,14 +278,15 @@ export const usePerformanceMonitoring = (componentName = 'Component') => {
     }
   }, [componentName, deviceInfo.isLowEnd]);
 
-  // Measure component lifecycle
+  // Measure component lifecycle - disabled to prevent infinite loops
   useEffect(() => {
-    startMeasurement();
+    // Performance monitoring temporarily disabled
+    // startMeasurement();
     
     return () => {
-      endMeasurement();
+      // endMeasurement();
     };
-  });
+  }, []); // Empty dependency array to prevent loops
 
   // Get performance status
   const getPerformanceStatus = useCallback(() => {
@@ -317,10 +331,15 @@ export const useIntersectionObserver = (options = {}) => {
   const elementRef = useRef(null);
   const observerRef = useRef(null);
 
-  const deviceInfo = useMemo(() => ({
-    isLowEnd: isLowEndDevice(),
-    type: getDeviceType()
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice()
+    };
+  }, []);
 
   // Adjust threshold for low-end devices
   const adjustedThreshold = deviceInfo.isLowEnd ? Math.max(threshold * 0.5, 0.05) : threshold;

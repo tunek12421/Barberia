@@ -1,112 +1,137 @@
-import React from 'react';
-import { X, Check } from 'lucide-react';
-import { services, barbers, timeSlots } from '../data/constants';
+import React, { useEffect, useCallback, useState } from 'react';
+import { X, ArrowLeft, ArrowRight } from 'lucide-react';
+import { services, barbers } from '../data/constants';
+import '../styles/booking-modal.css';
 
-const BookingModal = ({
-  showBookingModal,
-  setShowBookingModal,
-  bookingStep,
-  setBookingStep,
-  selectedService,
-  setSelectedService,
-  selectedBarber,
-  setSelectedBarber,
-  selectedDate,
-  setSelectedDate,
-  selectedTime,
-  setSelectedTime,
-  formData,
-  setFormData,
-  handleBooking,
-  resetBooking
-}) => {
+const BookingModal = ({ showBookingModal, setShowBookingModal }) => {
+  // Simple local state instead of complex hooks
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedService, setSelectedService] = useState('');
+  const [selectedBarber, setSelectedBarber] = useState('');
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!showBookingModal) {
+      setCurrentStep(1);
+      setSelectedService('');
+      setSelectedBarber('');
+    }
+  }, [showBookingModal]);
+
+  // Handle modal close
+  const handleClose = useCallback(() => {
+    setShowBookingModal(false);
+  }, [setShowBookingModal]);
+
+  // Navigation
+  const nextStep = useCallback(() => {
+    setCurrentStep(prev => Math.min(prev + 1, 2)); // Max 2 steps for now
+  }, []);
+
+  const prevStep = useCallback(() => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  }, []);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && showBookingModal) {
+        handleClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showBookingModal, handleClose]);
+
+  // Handle backdrop click
+  const handleBackdropClick = useCallback((e) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  }, [handleClose]);
+
   if (!showBookingModal) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-black border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
-        <button 
-          onClick={() => {setShowBookingModal(false); resetBooking();}}
-          className="absolute top-8 right-8 text-white/40 hover:text-white transition-colors z-10"
+    <div 
+      className="booking-modal-backdrop"
+      onClick={handleBackdropClick}
+    >
+      <div 
+        className="booking-modal booking-modal--centered"
+        role="dialog"
+        aria-labelledby="booking-modal-title"
+        aria-modal="true"
+      >
+        {/* Close Button */}
+        <button
+          onClick={handleClose}
+          className="booking-modal__close"
+          aria-label="Cerrar modal de reserva"
         >
-          <X size={24} />
+          <X className="booking-modal__close-icon" />
         </button>
-        
-        <div className="p-12">
-          <h2 className="text-3xl font-thin tracking-[0.2em] mb-12">RESERVAR EXPERIENCIA</h2>
+
+        {/* Modal Header */}
+        <header className="booking-modal__header">
+          <h1 id="booking-modal-title" className="booking-modal__title">
+            Reservar Experiencia
+          </h1>
+          <p className="booking-modal__subtitle">
+            Paso {currentStep} de 2
+          </p>
+        </header>
+
+        {/* Modal Content */}
+        <div className="booking-modal__content">
           
-          <div className="flex items-center justify-between mb-16">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex-1 flex items-center">
-                <div className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs transition-all duration-500 ${
-                    bookingStep >= step 
-                      ? 'border-white bg-white text-black' 
-                      : 'border-white/30 text-white/30'
-                  }`}>
-                    {step}
-                  </div>
-                  <p className={`ml-3 text-xs tracking-[0.2em] hidden sm:block transition-colors duration-500 ${
-                    bookingStep >= step ? 'text-white' : 'text-white/30'
-                  }`}>
-                    {step === 1 ? 'SERVICIO' : step === 2 ? 'HORARIO' : 'CONFIRMAR'}
-                  </p>
-                </div>
-                {step < 3 && (
-                  <div className={`flex-1 h-[1px] ml-4 transition-all duration-500 ${
-                    bookingStep > step ? 'bg-white/30' : 'bg-white/10'
-                  }`}></div>
-                )}
-              </div>
-            ))}
-          </div>
-          
-          {bookingStep === 1 && (
-            <div className="space-y-12 animate-fade-in">
-              <div>
-                <h3 className="text-sm tracking-[0.3em] text-white/40 mb-8">SELECCIONAR SERVICIO</h3>
-                <div className="grid md:grid-cols-2 gap-4">
+          {currentStep === 1 && (
+            <div className="booking-step booking-step--service">
+              <div className="booking-section">
+                <h2 className="booking-section__title">Selecciona tu Servicio</h2>
+                <div className="service-grid">
                   {services.map(service => (
                     <button
                       key={service.id}
                       onClick={() => setSelectedService(service.id)}
-                      className={`text-left p-6 border transition-all duration-500 ${
-                        selectedService === service.id 
-                          ? 'border-white bg-white/5' 
-                          : 'border-white/20 hover:border-white/40'
+                      className={`service-card ${
+                        selectedService === service.id ? 'service-card--selected' : ''
                       }`}
+                      aria-pressed={selectedService === service.id}
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <h4 className="text-lg tracking-[0.1em]">{service.name}</h4>
-                        <span className="text-xl font-thin">${service.price}</span>
+                      <div className="service-card__header">
+                        <h3 className="service-card__name">{service.name}</h3>
+                        <span className="service-card__price">${service.price}</span>
                       </div>
-                      <p className="text-sm text-white/50 mb-2">{service.duration}</p>
-                      <p className="text-sm text-white/60">{service.description}</p>
+                      <p className="service-card__duration">{service.duration}</p>
+                      <p className="service-card__description">{service.description}</p>
                     </button>
                   ))}
                 </div>
               </div>
               
-              <div>
-                <h3 className="text-sm tracking-[0.3em] text-white/40 mb-8">SELECCIONAR MAESTRO</h3>
-                <div className="grid md:grid-cols-3 gap-4">
+              <div className="booking-section">
+                <h2 className="booking-section__title">Selecciona tu Maestro</h2>
+                <div className="barber-grid">
                   {barbers.map(barber => (
                     <button
                       key={barber.id}
                       onClick={() => setSelectedBarber(barber.id)}
-                      className={`p-6 border transition-all duration-500 ${
-                        selectedBarber === barber.id 
-                          ? 'border-white bg-white/5' 
-                          : 'border-white/20 hover:border-white/40'
+                      className={`barber-card ${
+                        selectedBarber === barber.id ? 'barber-card--selected' : ''
                       }`}
+                      aria-pressed={selectedBarber === barber.id}
                     >
-                      <h4 className="text-lg tracking-[0.1em] mb-1">{barber.name}</h4>
-                      <p className="text-sm text-white/50 mb-3">{barber.specialty}</p>
-                      <div className="flex items-center justify-center space-x-1">
+                      <h3 className="barber-card__name">{barber.name}</h3>
+                      <p className="barber-card__specialty">{barber.specialty}</p>
+                      <div className="barber-card__rating">
                         {[...Array(5)].map((_, i) => (
-                          <div 
-                            key={i} 
-                            className={`w-1 h-3 ${i < Math.floor(barber.rating) ? 'bg-white/60' : 'bg-white/20'}`}
+                          <div
+                            key={i}
+                            className={`barber-card__star ${
+                              i < Math.floor(barber.rating) ? 'barber-card__star--filled' : ''
+                            }`}
                           />
                         ))}
                       </div>
@@ -114,172 +139,74 @@ const BookingModal = ({
                   ))}
                 </div>
               </div>
-              
-              <div className="flex justify-end">
-                <button 
-                  onClick={() => setBookingStep(2)}
-                  disabled={!selectedService || !selectedBarber}
-                  className={`px-12 py-4 border text-sm tracking-[0.2em] transition-all duration-500 ${
-                    selectedService && selectedBarber
-                      ? 'border-white text-white hover:bg-white hover:text-black'
-                      : 'border-white/20 text-white/20 cursor-not-allowed'
-                  }`}
-                >
-                  CONTINUAR
-                </button>
+            </div>
+          )}
+          
+          {currentStep === 2 && (
+            <div className="booking-step booking-step--confirmation">
+              <div className="booking-section">
+                <h2 className="booking-section__title">Resumen de tu Reserva</h2>
+                <div className="booking-summary">
+                  <div className="booking-summary__item">
+                    <span className="booking-summary__label">Servicio:</span>
+                    <span className="booking-summary__value">
+                      {services.find(s => s.id === selectedService)?.name}
+                    </span>
+                  </div>
+                  <div className="booking-summary__item">
+                    <span className="booking-summary__label">Maestro:</span>
+                    <span className="booking-summary__value">
+                      {barbers.find(b => b.id === selectedBarber)?.name}
+                    </span>
+                  </div>
+                  <div className="booking-summary__total">
+                    <span className="booking-summary__label">Total:</span>
+                    <span className="booking-summary__price">
+                      ${services.find(s => s.id === selectedService)?.price} USD
+                    </span>
+                  </div>
+                </div>
+                <p className="booking-confirmation__message">¡Tu reserva está lista!</p>
               </div>
             </div>
           )}
           
-          {bookingStep === 2 && (
-            <div className="space-y-12 animate-fade-in">
-              <div>
-                <h3 className="text-sm tracking-[0.3em] text-white/40 mb-8">SELECCIONAR FECHA</h3>
-                <input 
-                  type="date" 
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full bg-transparent border border-white/20 p-4 text-white focus:border-white outline-none transition-colors duration-300"
-                />
-              </div>
-              
-              <div>
-                <h3 className="text-sm tracking-[0.3em] text-white/40 mb-8">SELECCIONAR HORA</h3>
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                  {timeSlots.map(time => (
-                    <button
-                      key={time}
-                      onClick={() => setSelectedTime(time)}
-                      className={`py-3 border text-sm transition-all duration-500 ${
-                        selectedTime === time 
-                          ? 'border-white bg-white text-black' 
-                          : 'border-white/20 hover:border-white/40'
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex justify-between">
-                <button 
-                  onClick={() => setBookingStep(1)}
-                  className="px-12 py-4 border border-white/20 text-sm tracking-[0.2em] hover:border-white/40 transition-all duration-500"
-                >
-                  ANTERIOR
-                </button>
-                <button 
-                  onClick={() => setBookingStep(3)}
-                  disabled={!selectedDate || !selectedTime}
-                  className={`px-12 py-4 border text-sm tracking-[0.2em] transition-all duration-500 ${
-                    selectedDate && selectedTime
-                      ? 'border-white text-white hover:bg-white hover:text-black'
-                      : 'border-white/20 text-white/20 cursor-not-allowed'
-                  }`}
-                >
-                  CONTINUAR
-                </button>
-              </div>
-            </div>
-          )}
-          
-          {bookingStep === 3 && (
-            <div className="space-y-12 animate-fade-in">
-              <div className="space-y-6">
-                <div>
-                  <label className="text-sm tracking-[0.3em] text-white/40 block mb-3">NOMBRE COMPLETO</label>
-                  <input 
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full bg-transparent border-b border-white/20 pb-3 text-white focus:border-white outline-none transition-colors duration-300"
-                    placeholder="John Doe"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm tracking-[0.3em] text-white/40 block mb-3">EMAIL</label>
-                  <input 
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full bg-transparent border-b border-white/20 pb-3 text-white focus:border-white outline-none transition-colors duration-300"
-                    placeholder="john@example.com"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm tracking-[0.3em] text-white/40 block mb-3">TELÉFONO</label>
-                  <input 
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full bg-transparent border-b border-white/20 pb-3 text-white focus:border-white outline-none transition-colors duration-300"
-                    placeholder="+1 (555) 123-4567"
-                  />
-                </div>
-              </div>
-              
-              <div className="border border-white/20 p-8 space-y-4">
-                <h4 className="text-sm tracking-[0.3em] text-white/40 mb-6">RESUMEN DE RESERVA</h4>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-white/60">Servicio:</span>
-                    <span>{services.find(s => s.id === selectedService)?.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/60">Maestro:</span>
-                    <span>{barbers.find(b => b.id === selectedBarber)?.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/60">Fecha:</span>
-                    <span>{selectedDate && new Date(selectedDate).toLocaleDateString('es-ES', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/60">Hora:</span>
-                    <span>{selectedTime}</span>
-                  </div>
-                  <div className="border-t border-white/10 pt-4 mt-4">
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-white/60">Total:</span>
-                      <span className="text-2xl font-thin">
-                        ${services.find(s => s.id === selectedService)?.price} USD
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-between">
-                <button 
-                  onClick={() => setBookingStep(2)}
-                  className="px-12 py-4 border border-white/20 text-sm tracking-[0.2em] hover:border-white/40 transition-all duration-500"
-                >
-                  ANTERIOR
-                </button>
-                <button 
-                  onClick={handleBooking}
-                  disabled={!formData.name || !formData.email || !formData.phone}
-                  className={`px-12 py-4 border text-sm tracking-[0.2em] transition-all duration-500 flex items-center ${
-                    formData.name && formData.email && formData.phone
-                      ? 'border-white text-white hover:bg-white hover:text-black'
-                      : 'border-white/20 text-white/20 cursor-not-allowed'
-                  }`}
-                >
-                  <Check size={16} className="mr-3" />
-                  CONFIRMAR RESERVA
-                </button>
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Modal Footer */}
+        <footer className="booking-modal__footer">
+          <div className="booking-modal__actions">
+            {currentStep > 1 && (
+              <button 
+                onClick={prevStep}
+                className="booking-modal__btn booking-modal__btn--secondary"
+              >
+                <ArrowLeft className="booking-modal__btn-icon" />
+                <span>Anterior</span>
+              </button>
+            )}
+            
+            <div className="booking-modal__actions-right">
+              {currentStep < 2 ? (
+                <button 
+                  onClick={nextStep}
+                  disabled={!selectedService || !selectedBarber}
+                  className="booking-modal__btn booking-modal__btn--primary"
+                >
+                  <span>Continuar</span>
+                  <ArrowRight className="booking-modal__btn-icon" />
+                </button>
+              ) : (
+                <button 
+                  onClick={handleClose}
+                  className="booking-modal__btn booking-modal__btn--primary"
+                >
+                  Confirmar Reserva
+                </button>
+              )}
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

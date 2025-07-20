@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Award, X, Instagram, Twitter, Linkedin } from 'lucide-react';
 import { barbers } from '../data/constants';
 import { 
@@ -17,22 +17,22 @@ import '../styles/barbers-section.css';
 
 const BarbersSection = () => {
   // Performance monitoring
-  const { startMeasurement, endMeasurement } = usePerformanceMonitoring('BarbersSection');
+  usePerformanceMonitoring('BarbersSection');
   
   // Device capabilities detection
   const deviceInfo = useMemo(() => {
-    startMeasurement();
-    const info = {
-      type: getDeviceType(),
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
       screenCategory: getScreenCategory(),
       isLowEnd: isLowEndDevice(),
       reducedMotion: prefersReducedMotion(),
       canHover: canHover(),
       hasPointerFine: hasPointerFine()
     };
-    endMeasurement();
-    return info;
-  }, [startMeasurement, endMeasurement]);
+  }, []); // Static device info
 
   // Modal state management
   const {
@@ -61,7 +61,7 @@ const BarbersSection = () => {
 
   // Determine layout mode based on device
   const layoutMode = useMemo(() => {
-    if (deviceInfo.type.isMobile || deviceInfo.screenCategory === 'small-tablet') {
+    if (deviceInfo.isMobile || deviceInfo.screenCategory === 'small-tablet') {
       return 'carousel';
     }
     return 'grid';
@@ -100,7 +100,6 @@ const BarbersSection = () => {
       ref={sectionRef}
       id="maestros" 
       className="barbers-section"
-      role="region"
       aria-labelledby="barbers-title"
     >
       <div className="barbers-section__container">
@@ -246,7 +245,7 @@ const BarberCard = ({ barber, index, onClick, deviceInfo, isVisible }) => {
     handleImageLoad
   } = useLazyLoading({
     threshold: deviceInfo.isLowEnd ? 0.05 : 0.1,
-    rootMargin: deviceInfo.type.isMobile ? '20px' : '50px',
+    rootMargin: deviceInfo.isMobile ? '20px' : '50px',
     triggerOnce: true
   });
 
@@ -345,7 +344,7 @@ const BarberCard = ({ barber, index, onClick, deviceInfo, isVisible }) => {
         
         {/* Skills */}
         <div className="barber-card__skills">
-          {barber.skills.slice(0, deviceInfo.type.isMobile ? 2 : 4).map((skill, idx) => (
+          {barber.skills.slice(0, deviceInfo.isMobile ? 2 : 4).map((skill, idx) => (
             <span key={idx} className="barber-card__skill">
               {skill}
             </span>
@@ -384,30 +383,27 @@ const BarberCard = ({ barber, index, onClick, deviceInfo, isVisible }) => {
         
         {/* Social Links */}
         <div className="barber-card__social">
-          <a 
-            href="#" 
+          <button 
             className="barber-card__social-link"
             aria-label={`Instagram de ${barber.name}`}
             onClick={(e) => e.stopPropagation()}
           >
             <Instagram size={16} aria-hidden="true" />
-          </a>
-          <a 
-            href="#" 
+          </button>
+          <button 
             className="barber-card__social-link"
             aria-label={`Twitter de ${barber.name}`}
             onClick={(e) => e.stopPropagation()}
           >
             <Twitter size={16} aria-hidden="true" />
-          </a>
-          <a 
-            href="#" 
+          </button>
+          <button 
             className="barber-card__social-link"
             aria-label={`LinkedIn de ${barber.name}`}
             onClick={(e) => e.stopPropagation()}
           >
             <Linkedin size={16} aria-hidden="true" />
-          </a>
+          </button>
         </div>
       </div>
     </article>
@@ -443,8 +439,8 @@ const BarberModal = ({ barber, isOpen, onClose, handleBackdropClick, getModalCla
               alt={`Foto de ${barber.name}`}
               className="modal-barber-profile__avatar"
               style={{
-                width: deviceInfo.type.isMobile ? '120px' : '200px',
-                height: deviceInfo.type.isMobile ? '150px' : '250px',
+                width: deviceInfo.isMobile ? '120px' : '200px',
+                height: deviceInfo.isMobile ? '150px' : '250px',
                 objectFit: 'cover'
               }}
             />

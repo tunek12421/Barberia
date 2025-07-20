@@ -31,11 +31,16 @@ export const useTouchGestures = (options = {}) => {
   });
 
   // Device capabilities
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    isLowEnd: isLowEndDevice(),
-    reducedMotion: prefersReducedMotion()
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice(),
+      reducedMotion: prefersReducedMotion()
+    };
+  }, []);
 
   // Calculate gesture metrics
   const calculateGesture = useCallback((endX, endY, endTime) => {
@@ -161,6 +166,9 @@ export const useTouchGestures = (options = {}) => {
         case 'down':
           onSwipeDown && onSwipeDown(gesture);
           break;
+        default:
+          // No action for unknown directions
+          break;
       }
     }
 
@@ -193,32 +201,32 @@ export const useTouchGestures = (options = {}) => {
 
   // Mouse event handlers for desktop testing
   const handleMouseDown = useCallback((event) => {
-    if (deviceInfo.type.isMobile) return;
+    if (deviceInfo.isMobile) return;
     
     // Simulate touch start for mouse
     const fakeTouch = {
       touches: [{ clientX: event.clientX, clientY: event.clientY }]
     };
     handleTouchStart(fakeTouch);
-  }, [deviceInfo.type.isMobile, handleTouchStart]);
+  }, [deviceInfo.isMobile, handleTouchStart]);
 
   const handleMouseMove = useCallback((event) => {
-    if (deviceInfo.type.isMobile || !gestureState.current.isTracking) return;
+    if (deviceInfo.isMobile || !gestureState.current.isTracking) return;
     
     const fakeTouch = {
       touches: [{ clientX: event.clientX, clientY: event.clientY }]
     };
     handleTouchMove(fakeTouch);
-  }, [deviceInfo.type.isMobile, handleTouchMove]);
+  }, [deviceInfo.isMobile, handleTouchMove]);
 
   const handleMouseUp = useCallback((event) => {
-    if (deviceInfo.type.isMobile || !gestureState.current.isTracking) return;
+    if (deviceInfo.isMobile || !gestureState.current.isTracking) return;
     
     const fakeTouch = {
       changedTouches: [{ clientX: event.clientX, clientY: event.clientY }]
     };
     handleTouchEnd(fakeTouch);
-  }, [deviceInfo.type.isMobile, handleTouchEnd]);
+  }, [deviceInfo.isMobile, handleTouchEnd]);
 
   // Setup event listeners
   useEffect(() => {
@@ -231,7 +239,7 @@ export const useTouchGestures = (options = {}) => {
     element.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     // Mouse events for desktop (development/testing)
-    if (!deviceInfo.type.isMobile) {
+    if (!deviceInfo.isMobile) {
       element.addEventListener('mousedown', handleMouseDown);
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -242,14 +250,14 @@ export const useTouchGestures = (options = {}) => {
       element.removeEventListener('touchmove', handleTouchMove);
       element.removeEventListener('touchend', handleTouchEnd);
       
-      if (!deviceInfo.type.isMobile) {
+      if (!deviceInfo.isMobile) {
         element.removeEventListener('mousedown', handleMouseDown);
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
       }
     };
   }, [
-    deviceInfo.type.isMobile,
+    deviceInfo.isMobile,
     handleTouchStart,
     handleTouchMove,
     handleTouchEnd,
@@ -301,11 +309,16 @@ export const useCarouselGestures = (items = [], options = {}) => {
   const containerRef = useRef(null);
   const autoPlayRef = useRef(null);
 
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    isLowEnd: isLowEndDevice(),
-    reducedMotion: prefersReducedMotion()
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice(),
+      reducedMotion: prefersReducedMotion()
+    };
+  }, []);
 
   // Navigation functions
   const goToSlide = useCallback((index) => {

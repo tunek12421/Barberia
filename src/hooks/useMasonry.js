@@ -26,16 +26,21 @@ export const useMasonry = (items = [], options = {}) => {
   const itemHeightsRef = useRef(new Map());
 
   // Device capabilities
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    isLowEnd: isLowEndDevice(),
-    reducedMotion: prefersReducedMotion()
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice(),
+      reducedMotion: prefersReducedMotion()
+    };
+  }, []);
 
   // Adjust settings for device performance
   const adjustedSettings = useMemo(() => ({
     gap: deviceInfo.isLowEnd ? gap * 0.75 : gap,
-    minColumnWidth: deviceInfo.type.isMobile ? 
+    minColumnWidth: deviceInfo.isMobile ? 
       Math.min(minColumnWidth, 280) : minColumnWidth,
     maxColumns: deviceInfo.isLowEnd ? 
       Math.min(maxColumns, 3) : maxColumns,
@@ -350,12 +355,18 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
   
   const imageCache = useRef(new Map());
   const loadPromises = useRef(new Map());
+  const processedImagesRef = useRef(new Set());
 
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    isLowEnd: isLowEndDevice(),
-    pixelRatio: window.devicePixelRatio || 1
-  }), []);
+  const deviceInfo = useMemo(() => {
+    const type = getDeviceType();
+    return {
+      isMobile: type.isMobile,
+      isTablet: type.isTablet,
+      isDesktop: type.isDesktop,
+      isLowEnd: isLowEndDevice(),
+      pixelRatio: window.devicePixelRatio || 1
+    };
+  }, []);
 
   // Check WebP support
   const supportsWebP = useCallback(() => {
@@ -387,7 +398,7 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
     }
     
     return url.toString();
-  }, [quality, format, deviceInfo, supportsWebP]);
+  }, [quality, format, deviceInfo.isLowEnd, deviceInfo.pixelRatio, supportsWebP]);
 
   // Preload image with promise caching
   const preloadImage = useCallback((src, width) => {
@@ -455,13 +466,49 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
     };
   }, [loadedImages, failedImages]);
 
+  // Memoize images to prevent unnecessary re-processing
+  const imageSignature = useMemo(() => images.map(img => img.url).join(','), [images]);
+  const stableImages = useMemo(() => images, [images, imageSignature]);
+
   // Load images with priority handling
   useEffect(() => {
-    if (!images.length) return;
+    if (!stableImages.length) return;
 
+    // Check if we've already processed these exact images
+    const imageUrlsString = stableImages.map(img => img.url).sort().join('|');
+    if (processedImagesRef.current.has(imageUrlsString)) {
+      return; // Already processed this set of images
+    }
+    
+    processedImagesRef.current.add(imageUrlsString);
     let isMounted = true;
     
+    const getOptimizedSrcLocal = (originalSrc, width) => {
+      const url = new URL(originalSrc);
+      
+      // Adjust quality for device capabilities
+      const adjustedQuality = deviceInfo.isLowEnd ? Math.min(quality, 60) : quality;
+      const adjustedWidth = Math.ceil(width * deviceInfo.pixelRatio);
+      
+      // Update URL parameters for Unsplash optimization
+      url.searchParams.set('w', adjustedWidth.toString());
+      url.searchParams.set('q', adjustedQuality.toString());
+      url.searchParams.set('fit', 'crop');
+      url.searchParams.set('auto', 'format');
+      
+      if (format === 'webp' && supportsWebP()) {
+        url.searchParams.set('fm', 'webp');
+      }
+      
+      return url.toString();
+    };
+    
     const loadSingleImage = (img, isMountedRef) => {
+      // Skip if already loaded or failed
+      if (loadedImages.has(img.url) || failedImages.has(img.url)) {
+        return Promise.resolve();
+      }
+      
       return new Promise((resolve, reject) => {
         const image = new Image();
         image.onload = () => {
@@ -476,18 +523,18 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
           }
           reject(new Error(`Failed to load: ${img.url}`));
         };
-        image.src = getOptimizedSrc(img.url, sizes?.desktop || 800);
+        image.src = getOptimizedSrcLocal(img.url, sizes?.desktop || 800);
       });
     };
     
     const loadImages = async () => {
-      const priorityImages = priority ? images.slice(0, 3) : [];
-      const normalImages = priority ? images.slice(3) : images;
+      const priorityImages = priority ? stableImages.slice(0, 3) : [];
+      const normalImages = priority ? stableImages.slice(3) : stableImages;
       
       // Load priority images first
       if (priorityImages.length > 0 && isMounted) {
         await Promise.allSettled(
-          priorityImages.map(img => loadSingleImage(img, true)) // Pass true instead of isMounted reference
+          priorityImages.map(img => loadSingleImage(img, true))
         );
       }
       
@@ -498,12 +545,12 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
         
         const batch = normalImages.slice(i, i + batchSize);
         await Promise.allSettled(
-          batch.map(img => loadSingleImage(img, true)) // Pass true instead of isMounted reference
+          batch.map(img => loadSingleImage(img, true))
         );
         
         // Update progress
         if (isMounted) {
-          setLoadingProgress(((i + batchSize) / images.length) * 100);
+          setLoadingProgress(((i + batchSize) / stableImages.length) * 100);
         }
         
         // Small delay for low-end devices
@@ -522,8 +569,7 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
     return () => {
       isMounted = false;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [images.length, priority, deviceInfo.isLowEnd]); // Intentionally simplified dependencies
+  }, [stableImages, deviceInfo.isLowEnd, deviceInfo.pixelRatio, failedImages, format, loadedImages, priority, quality, sizes?.desktop, supportsWebP]); // Add all missing dependencies
 
   return {
     loadedImages,
