@@ -1,93 +1,500 @@
-import React from 'react';
-import { Award } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Award, X, Instagram, Twitter, Linkedin } from 'lucide-react';
 import { barbers } from '../data/constants';
+import { 
+  getDeviceType, 
+  getScreenCategory, 
+  isLowEndDevice, 
+  prefersReducedMotion,
+  canHover,
+  hasPointerFine
+} from '../utils/deviceDetection';
+import { useCarouselGestures } from '../hooks/useTouchGestures';
+import { useModalStates, usePerformanceMonitoring, useIntersectionObserver } from '../hooks/useModalStates';
+import { useLazyLoading } from '../hooks/useLazyLoading';
+import { useResponsiveImage } from '../hooks/useResponsiveImage';
+import '../styles/barbers-section.css';
 
 const BarbersSection = () => {
+  // Performance monitoring
+  const { startMeasurement, endMeasurement } = usePerformanceMonitoring('BarbersSection');
+  
+  // Device capabilities detection
+  const deviceInfo = useMemo(() => {
+    startMeasurement();
+    const info = {
+      type: getDeviceType(),
+      screenCategory: getScreenCategory(),
+      isLowEnd: isLowEndDevice(),
+      reducedMotion: prefersReducedMotion(),
+      canHover: canHover(),
+      hasPointerFine: hasPointerFine()
+    };
+    endMeasurement();
+    return info;
+  }, [startMeasurement, endMeasurement]);
+
+  // Modal state management
+  const {
+    isOpen: isModalOpen,
+    activeModalId,
+    openModal,
+    closeModal,
+    handleBackdropClick,
+    getModalClasses
+  } = useModalStates({
+    closeOnEscape: true,
+    closeOnBackdropClick: true,
+    preventBodyScroll: true,
+    focusTrap: true
+  });
+
+  // Intersection observer for section
+  const {
+    elementRef: sectionRef,
+    isIntersecting: isSectionVisible
+  } = useIntersectionObserver({
+    threshold: 0.1,
+    rootMargin: '50px',
+    triggerOnce: true
+  });
+
+  // Determine layout mode based on device
+  const layoutMode = useMemo(() => {
+    if (deviceInfo.type.isMobile || deviceInfo.screenCategory === 'small-tablet') {
+      return 'carousel';
+    }
+    return 'grid';
+  }, [deviceInfo]);
+
+  // Carousel for mobile devices
+  const carousel = useCarouselGestures(barbers, {
+    autoPlay: !deviceInfo.reducedMotion && isSectionVisible,
+    autoPlayDelay: 6000,
+    infinite: true,
+    swipeThreshold: 50,
+    dragThreshold: 0.2,
+    onSlideChange: (index) => {
+      console.log(`Barber slide changed to: ${index}`);
+    }
+  });
+
+  // Handle barber card click
+  const handleBarberClick = useCallback((barberId) => {
+    if (!deviceInfo.reducedMotion) {
+      // Add haptic feedback on supported devices
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }
+    openModal(barberId);
+  }, [deviceInfo.reducedMotion, openModal]);
+
+  // Get selected barber for modal
+  const selectedBarber = useMemo(() => {
+    return barbers.find(barber => barber.id.toString() === activeModalId);
+  }, [activeModalId]);
+
   return (
-    <section id="maestros" className="py-32 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="mb-24">
-          <div className="flex items-center mb-6">
-            <div className="w-12 h-[0.5px] bg-white/30"></div>
-            <p className="text-xs tracking-[0.3em] text-white/50 mx-6">02</p>
-            <div className="flex-1 h-[0.5px] bg-white/10"></div>
+    <section 
+      ref={sectionRef}
+      id="maestros" 
+      className="barbers-section"
+      role="region"
+      aria-labelledby="barbers-title"
+    >
+      <div className="barbers-section__container">
+        {/* Section Header */}
+        <header className="barbers-section__header">
+          <div className="barbers-section__badge" aria-hidden="true">
+            <div className="barbers-section__badge-line"></div>
+            <span className="barbers-section__badge-number">02</span>
+            <div className="barbers-section__badge-line barbers-section__badge-line--extend"></div>
           </div>
-          <h2 className="text-5xl md:text-7xl font-thin tracking-[0.1em]">MAESTROS</h2>
-          <p className="text-lg text-white/60 mt-4 max-w-2xl">
+          
+          <h2 
+            id="barbers-title"
+            className="barbers-section__title"
+          >
+            MAESTROS
+          </h2>
+          
+          <p className="barbers-section__description">
             Artesanos que han dedicado su vida a perfeccionar el arte del grooming masculino
           </p>
-        </div>
+        </header>
         
-        <div className="grid md:grid-cols-3 gap-12">
-          {barbers.map((barber, index) => (
-            <div 
-              key={barber.id} 
-              className="group relative"
-              style={{
-                animation: 'fadeInUp 0.8s ease-out forwards',
-                animationDelay: `${index * 0.2}s`,
-                opacity: 0
-              }}
-            >
-              <div className="relative">
-                <div className="relative h-[600px] overflow-hidden mb-8">
-                  <img 
-                    src={barber.image}
-                    alt={barber.name}
-                    className="w-full h-full object-cover object-top grayscale transition-all duration-1000 group-hover:grayscale-0"
-                  />
-                  
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
-                  
-                  <div className="absolute bottom-0 left-0 right-0 p-8 transform translate-y-full group-hover:translate-y-0 transition-transform duration-700">
-                    <p className="text-white/80 italic text-sm">"{barber.quote}"</p>
-                  </div>
-                  
-                  <div className="absolute top-0 left-0 w-[1px] h-full bg-white/20 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-700 origin-top"></div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-2xl font-thin tracking-[0.2em] mb-1">{barber.name}</h3>
-                    <p className="text-sm tracking-[0.2em] text-white/40 mb-2">{barber.title}</p>
-                    <p className="text-white/60 text-sm">{barber.specialty}</p>
-                    <p className="text-white/40 text-xs mt-2">{barber.experience}</p>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 py-4 border-y border-white/10">
-                    {barber.skills.map((skill, idx) => (
-                      <span key={idx} className="text-xs tracking-[0.1em] text-white/30">
-                        {skill}{idx < barber.skills.length - 1 && ' •'}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <Award className="w-4 h-4 text-white/30" />
-                      <span className="text-xs text-white/50">{barber.awards[0]}</span>
-                    </div>
-                    <p className="text-xs text-white/40 tracking-[0.1em]">
-                      DISPONIBLE: {barber.availability}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-1 pt-4">
-                    {[...Array(5)].map((_, i) => (
-                      <div 
-                        key={i} 
-                        className={`w-1 h-3 ${i < Math.floor(barber.rating) ? 'bg-white/60' : 'bg-white/10'} transition-all duration-300`}
-                      />
-                    ))}
-                    <span className="text-xs text-white/40 ml-3">{barber.rating}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* Barbers Layout */}
+        <div className="barbers-layout">
+          {layoutMode === 'carousel' ? (
+            <CarouselLayout
+              barbers={barbers}
+              carousel={carousel}
+              deviceInfo={deviceInfo}
+              onBarberClick={handleBarberClick}
+              isVisible={isSectionVisible}
+            />
+          ) : (
+            <GridLayout
+              barbers={barbers}
+              deviceInfo={deviceInfo}
+              onBarberClick={handleBarberClick}
+              isVisible={isSectionVisible}
+            />
+          )}
         </div>
       </div>
+
+      {/* Barber Detail Modal */}
+      {selectedBarber && (
+        <BarberModal
+          barber={selectedBarber}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          handleBackdropClick={handleBackdropClick}
+          getModalClasses={getModalClasses}
+          deviceInfo={deviceInfo}
+        />
+      )}
     </section>
+  );
+};
+
+// Carousel Layout Component
+const CarouselLayout = ({ barbers, carousel, deviceInfo, onBarberClick, isVisible }) => {
+  return (
+    <div className="barbers-carousel">
+      <div 
+        ref={carousel.containerRef}
+        className="barbers-carousel__track"
+        style={{
+          transform: carousel.getSlideTransform(),
+          transition: carousel.isDragging ? 'none' : 'transform 0.4s ease-out'
+        }}
+        role="region"
+        aria-label="Carousel de barberos"
+        aria-live={carousel.isAutoPlaying ? 'polite' : 'off'}
+      >
+        {barbers.map((barber, index) => (
+          <div 
+            key={barber.id}
+            className="barbers-carousel__slide"
+            role="group"
+            aria-label={`${index + 1} de ${barbers.length}`}
+          >
+            <BarberCard
+              barber={barber}
+              index={index}
+              onClick={() => onBarberClick(barber.id)}
+              deviceInfo={deviceInfo}
+              isVisible={isVisible}
+            />
+          </div>
+        ))}
+      </div>
+      
+      {/* Carousel Navigation Dots */}
+      <nav className="barbers-carousel__nav" aria-label="Navegación de carousel">
+        {barbers.map((_, index) => (
+          <button
+            key={index}
+            className={`barbers-carousel__dot ${
+              index === carousel.currentIndex ? 'barbers-carousel__dot--active' : ''
+            }`}
+            onClick={() => {
+              carousel.pauseAutoPlay();
+              carousel.goToSlide(index);
+            }}
+            aria-label={`Ir al barbero ${index + 1}`}
+            aria-current={index === carousel.currentIndex ? 'true' : 'false'}
+          />
+        ))}
+      </nav>
+    </div>
+  );
+};
+
+// Grid Layout Component
+const GridLayout = ({ barbers, deviceInfo, onBarberClick, isVisible }) => {
+  return (
+    <div 
+      className="barbers-grid"
+      role="grid"
+      aria-label="Lista de barberos"
+    >
+      {barbers.map((barber, index) => (
+        <div key={barber.id} role="gridcell">
+          <BarberCard
+            barber={barber}
+            index={index}
+            onClick={() => onBarberClick(barber.id)}
+            deviceInfo={deviceInfo}
+            isVisible={isVisible}
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Individual Barber Card Component
+const BarberCard = ({ barber, index, onClick, deviceInfo, isVisible }) => {
+  // Lazy loading for the card
+  const {
+    elementRef,
+    isIntersecting,
+    handleImageLoad
+  } = useLazyLoading({
+    threshold: deviceInfo.isLowEnd ? 0.05 : 0.1,
+    rootMargin: deviceInfo.type.isMobile ? '20px' : '50px',
+    triggerOnce: true
+  });
+
+  // Responsive image
+  const {
+    optimizedSrc,
+    isLoaded: imageLoaded
+  } = useResponsiveImage(barber.image, {
+    sizes: {
+      mobile: 400,
+      tablet: 600,
+      desktop: 800
+    },
+    quality: deviceInfo.isLowEnd ? 60 : 80,
+    format: 'webp'
+  });
+
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClick();
+    }
+  }, [onClick]);
+
+  // Animation delay based on index and device performance
+  const animationDelay = useMemo(() => {
+    if (deviceInfo.reducedMotion) return 0;
+    return deviceInfo.isLowEnd ? index * 150 : index * 100;
+  }, [index, deviceInfo]);
+
+  return (
+    <article 
+      ref={elementRef}
+      className="barber-card"
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-label={`Ver perfil de ${barber.name}, ${barber.title}`}
+      aria-describedby={`barber-${barber.id}-description`}
+      style={{
+        animationDelay: `${animationDelay}ms`,
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+        transition: `opacity 0.6s ease-out ${animationDelay}ms, transform 0.6s ease-out ${animationDelay}ms`
+      }}
+    >
+      {/* Avatar Container */}
+      <div className="barber-card__avatar-container">
+        {isIntersecting && (
+          <>
+            <img 
+              src={optimizedSrc}
+              alt={`Foto de ${barber.name}`}
+              className="barber-card__avatar"
+              loading="lazy"
+              decoding="async"
+              onLoad={() => handleImageLoad(optimizedSrc)}
+              style={{
+                opacity: imageLoaded ? 1 : 0,
+                transition: 'opacity 0.4s ease-out'
+              }}
+            />
+            <div className="barber-card__avatar-overlay" aria-hidden="true" />
+            
+            {/* Quote Overlay */}
+            <div className="barber-card__quote" aria-hidden="true">
+              "{barber.quote}"
+            </div>
+          </>
+        )}
+      </div>
+      
+      {/* Card Content */}
+      <div className="barber-card__content">
+        <header className="barber-card__header">
+          <h3 className="barber-card__name">
+            {barber.name}
+          </h3>
+          <p className="barber-card__title">
+            {barber.title}
+          </p>
+          <p 
+            id={`barber-${barber.id}-description`}
+            className="barber-card__specialty"
+          >
+            {barber.specialty}
+          </p>
+        </header>
+        
+        {/* Bio Text (Truncated on Mobile) */}
+        <div className="barber-card__bio">
+          {barber.experience}
+        </div>
+        
+        {/* Skills */}
+        <div className="barber-card__skills">
+          {barber.skills.slice(0, deviceInfo.type.isMobile ? 2 : 4).map((skill, idx) => (
+            <span key={idx} className="barber-card__skill">
+              {skill}
+            </span>
+          ))}
+        </div>
+        
+        {/* Meta Information */}
+        <div className="barber-card__meta">
+          {/* Award */}
+          <div className="barber-card__award">
+            <Award className="barber-card__award-icon" aria-hidden="true" />
+            <span>{barber.awards[0]}</span>
+          </div>
+          
+          {/* Rating */}
+          <div className="barber-card__rating">
+            <div className="barber-card__stars" aria-label={`Calificación: ${barber.rating} de 5 estrellas`}>
+              {[...Array(5)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`barber-card__star ${
+                    i < Math.floor(barber.rating) ? 'barber-card__star--filled' : ''
+                  }`}
+                  aria-hidden="true"
+                />
+              ))}
+            </div>
+            <span className="barber-card__rating-value">{barber.rating}</span>
+          </div>
+          
+          {/* Availability */}
+          <div className="barber-card__availability">
+            Disponible: {barber.availability}
+          </div>
+        </div>
+        
+        {/* Social Links */}
+        <div className="barber-card__social">
+          <a 
+            href="#" 
+            className="barber-card__social-link"
+            aria-label={`Instagram de ${barber.name}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Instagram size={16} aria-hidden="true" />
+          </a>
+          <a 
+            href="#" 
+            className="barber-card__social-link"
+            aria-label={`Twitter de ${barber.name}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Twitter size={16} aria-hidden="true" />
+          </a>
+          <a 
+            href="#" 
+            className="barber-card__social-link"
+            aria-label={`LinkedIn de ${barber.name}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Linkedin size={16} aria-hidden="true" />
+          </a>
+        </div>
+      </div>
+    </article>
+  );
+};
+
+// Barber Detail Modal Component
+const BarberModal = ({ barber, isOpen, onClose, handleBackdropClick, getModalClasses, deviceInfo }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className={getModalClasses('barber-modal')}
+      onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={`modal-${barber.id}-title`}
+      aria-describedby={`modal-${barber.id}-description`}
+    >
+      <div className="barber-modal__content">
+        <button
+          className="barber-modal__close"
+          onClick={onClose}
+          aria-label="Cerrar modal"
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+        
+        <div className="modal-barber-profile">
+          <header className="modal-barber-profile__header">
+            <img 
+              src={barber.image}
+              alt={`Foto de ${barber.name}`}
+              className="modal-barber-profile__avatar"
+              style={{
+                width: deviceInfo.type.isMobile ? '120px' : '200px',
+                height: deviceInfo.type.isMobile ? '150px' : '250px',
+                objectFit: 'cover'
+              }}
+            />
+            <div className="modal-barber-profile__info">
+              <h2 
+                id={`modal-${barber.id}-title`}
+                className="modal-barber-profile__name"
+              >
+                {barber.name}
+              </h2>
+              <p className="modal-barber-profile__title">{barber.title}</p>
+              <p className="modal-barber-profile__specialty">{barber.specialty}</p>
+            </div>
+          </header>
+          
+          <div 
+            id={`modal-${barber.id}-description`}
+            className="modal-barber-profile__content"
+          >
+            <section className="modal-barber-profile__section">
+              <h3>Experiencia</h3>
+              <p>{barber.experience}</p>
+            </section>
+            
+            <section className="modal-barber-profile__section">
+              <h3>Especialidades</h3>
+              <ul>
+                {barber.skills.map((skill, idx) => (
+                  <li key={idx}>{skill}</li>
+                ))}
+              </ul>
+            </section>
+            
+            <section className="modal-barber-profile__section">
+              <h3>Reconocimientos</h3>
+              <ul>
+                {barber.awards.map((award, idx) => (
+                  <li key={idx}>{award}</li>
+                ))}
+              </ul>
+            </section>
+            
+            <section className="modal-barber-profile__section">
+              <h3>Disponibilidad</h3>
+              <p>{barber.availability}</p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

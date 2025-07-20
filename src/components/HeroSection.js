@@ -1,86 +1,192 @@
-import React from 'react';
+import React, { useMemo, useRef } from 'react';
 import { ChevronDown, ArrowRight } from 'lucide-react';
+import { 
+  getDeviceType, 
+  getScreenCategory, 
+  isLowEndDevice, 
+  prefersReducedMotion,
+  hasNotch,
+  getViewportDimensions
+} from '../utils/deviceDetection';
+import { useParallax } from '../hooks/useParallax';
+import { useResponsiveImage } from '../hooks/useResponsiveImage';
+import '../styles/hero-section.css';
 
 const HeroSection = ({ scrollY, setShowBookingModal, heroRef }) => {
+  const containerRef = useRef(null);
+  
+  // Memoize device detection to avoid repeated calculations
+  const deviceInfo = useMemo(() => ({
+    type: getDeviceType(),
+    screenCategory: getScreenCategory(),
+    isLowEnd: isLowEndDevice(),
+    reducedMotion: prefersReducedMotion(),
+    hasNotch: hasNotch(),
+    viewport: getViewportDimensions()
+  }), []);
+
+  // Enhanced parallax with performance optimization
+  const { parallaxOffset, isInView } = useParallax({
+    factor: deviceInfo.isLowEnd ? 0.1 : 0.3,
+    disabled: deviceInfo.reducedMotion || deviceInfo.type.isMobile
+  });
+
+  // Responsive image optimization
+  const { optimizedSrc, isLoaded } = useResponsiveImage(
+    'https://images.unsplash.com/photo-1585747860715-2ba37e788b70',
+    {
+      sizes: {
+        mobile: 768,
+        tablet: 1024, 
+        desktop: 1920,
+        large: 2560
+      },
+      quality: deviceInfo.isLowEnd ? 60 : 80,
+      format: 'webp'
+    }
+  );
+
+  // Dynamic class names based on device capabilities
+  const containerClasses = useMemo(() => {
+    const baseClasses = 'hero-section';
+    const deviceClasses = [
+      `hero-section--${deviceInfo.type.isMobile ? 'mobile' : deviceInfo.type.isTablet ? 'tablet' : 'desktop'}`,
+      `hero-section--${deviceInfo.screenCategory}`,
+      deviceInfo.hasNotch ? 'hero-section--notch' : '',
+      deviceInfo.reducedMotion ? 'hero-section--reduced-motion' : '',
+      deviceInfo.isLowEnd ? 'hero-section--low-end' : ''
+    ].filter(Boolean);
+    
+    return [baseClasses, ...deviceClasses].join(' ');
+  }, [deviceInfo]);
+
+  // Conditional rendering for performance optimization
+  const shouldRenderAnimations = !deviceInfo.reducedMotion && !deviceInfo.isLowEnd;
+  const shouldRenderParallax = !deviceInfo.type.isMobile && !deviceInfo.isLowEnd;
+
   return (
-    <section id="inicio" className="relative min-h-screen flex items-center justify-center" ref={heroRef}>
-      <div className="absolute inset-0">
-        <div className="relative w-full h-full overflow-hidden">
+    <section 
+      id="inicio" 
+      ref={heroRef}
+      className={containerClasses}
+      data-device-type={deviceInfo.type.isMobile ? 'mobile' : deviceInfo.type.isTablet ? 'tablet' : 'desktop'}
+      data-screen-category={deviceInfo.screenCategory}
+      style={{
+        '--viewport-width': `${deviceInfo.viewport.width}px`,
+        '--viewport-height': `${deviceInfo.viewport.height}px`,
+        '--device-pixel-ratio': deviceInfo.viewport.ratio
+      }}
+    >
+      {/* Background Layer with Optimized Image */}
+      <div className="hero-background" ref={containerRef}>
+        <div className="hero-background__image-container">
           <img 
-            src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074&h=1080&fit=crop" 
-            alt="The Gentleman's Club"
-            className="w-full h-full object-cover scale-110"
+            src={optimizedSrc}
+            alt="The Gentleman's Club - Barbería Premium"
+            className={`hero-background__image ${isLoaded ? 'loaded' : ''}`}
             style={{
-              transform: `translateY(${scrollY * 0.3}px) scale(1.1)`
+              transform: shouldRenderParallax 
+                ? `translate3d(0, ${parallaxOffset}px, 0) scale(1.1)` 
+                : 'scale(1.05)',
+              willChange: shouldRenderParallax ? 'transform' : 'auto'
             }}
+            loading="eager"
+            decoding="async"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black"></div>
           
-          <div className="absolute inset-0 opacity-10">
-            <svg className="w-full h-full" preserveAspectRatio="none">
-              <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-                <path d="M 100 0 L 0 0 0 100" fill="none" stroke="white" strokeWidth="0.5"/>
-              </pattern>
-              <rect width="100%" height="100%" fill="url(#grid)" />
-            </svg>
-          </div>
+          {/* Progressive Enhancement Overlay */}
+          <div className="hero-background__overlay"></div>
+          
+          {/* Optional Grid Pattern for Premium Feel */}
+          {!deviceInfo.isLowEnd && (
+            <div className="hero-background__pattern" aria-hidden="true">
+              <svg className="hero-background__grid" preserveAspectRatio="none">
+                <defs>
+                  <pattern id="hero-grid" width="100" height="100" patternUnits="userSpaceOnUse">
+                    <path d="M 100 0 L 0 0 0 100" fill="none" stroke="currentColor" strokeWidth="0.5"/>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#hero-grid)" />
+              </svg>
+            </div>
+          )}
         </div>
       </div>
       
-      <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
-        <div className="w-px h-20 bg-white/30 mx-auto mb-12 animate-expand-vertical"></div>
+      {/* Content Layer */}
+      <div className="hero-content">
+        {/* Decorative Line */}
+        {shouldRenderAnimations && (
+          <div className="hero-content__divider" aria-hidden="true"></div>
+        )}
         
-        <h1 className="mb-8">
-          <div className="overflow-hidden">
-            <div className="text-7xl md:text-9xl font-thin tracking-[0.2em] leading-none animate-slide-up">
-              DONDE EL
+        {/* Main Heading with Ultra-Responsive Typography */}
+        <h1 className="hero-content__title">
+          <div className="hero-content__title-line">
+            <div className="hero-content__title-text hero-content__title-text--primary">
+              {deviceInfo.screenCategory === 'xs-mobile' ? 'ESTILO' : 'DONDE EL'}
             </div>
           </div>
-          <div className="overflow-hidden">
-            <div className="text-7xl md:text-9xl font-thin tracking-[0.2em] leading-none mt-4 animate-slide-up animation-delay-200">
-              ESTILO
+          <div className="hero-content__title-line">
+            <div className="hero-content__title-text hero-content__title-text--primary">
+              {deviceInfo.screenCategory === 'xs-mobile' ? 'PREMIUM' : 'ESTILO'}
             </div>
           </div>
-          <div className="overflow-hidden">
-            <div className="text-3xl md:text-5xl font-thin tracking-[0.3em] text-white/70 mt-6 animate-slide-up animation-delay-400">
-              TRASCIENDE EL TIEMPO
+          <div className="hero-content__title-line">
+            <div className="hero-content__title-text hero-content__title-text--secondary">
+              {deviceInfo.screenCategory === 'xs-mobile' 
+                ? 'TRASCIENDE' 
+                : 'TRASCIENDE EL TIEMPO'
+              }
             </div>
           </div>
         </h1>
         
-        <div className="flex items-center justify-center space-x-6 mb-16 animate-fade-in animation-delay-600">
-          <div className="w-20 h-[0.5px] bg-white/30"></div>
-          <p className="text-sm tracking-[0.3em] text-white/50">EST. 1995</p>
-          <div className="w-20 h-[0.5px] bg-white/30"></div>
+        {/* Establishment Badge */}
+        <div className="hero-content__badge">
+          <div className="hero-content__badge-line" aria-hidden="true"></div>
+          <p className="hero-content__badge-text">EST. 1995</p>
+          <div className="hero-content__badge-line" aria-hidden="true"></div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in animation-delay-800">
+        {/* Call-to-Action Buttons */}
+        <div className="hero-content__actions">
           <button 
             onClick={() => setShowBookingModal(true)}
-            className="group relative overflow-hidden px-12 py-5 border border-white/30 hover:border-white transition-all duration-700"
+            className="hero-cta hero-cta--primary"
+            aria-label="Reservar experiencia premium"
           >
-            <span className="relative z-10 text-sm tracking-[0.3em] flex items-center">
-              RESERVAR EXPERIENCIA
-              <ArrowRight className="ml-3 w-4 h-4 transform group-hover:translate-x-2 transition-transform duration-300" />
+            <span className="hero-cta__text">
+              {deviceInfo.screenCategory === 'xs-mobile' ? 'RESERVAR' : 'RESERVAR EXPERIENCIA'}
+              <ArrowRight className="hero-cta__icon" aria-hidden="true" />
             </span>
-            <div className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
-            <span className="absolute inset-0 flex items-center justify-center text-black text-sm tracking-[0.3em] opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-              RESERVAR EXPERIENCIA
-              <ArrowRight className="ml-3 w-4 h-4" />
+            <div className="hero-cta__overlay" aria-hidden="true"></div>
+            <span className="hero-cta__text-hover">
+              {deviceInfo.screenCategory === 'xs-mobile' ? 'RESERVAR' : 'RESERVAR EXPERIENCIA'}
+              <ArrowRight className="hero-cta__icon" aria-hidden="true" />
             </span>
           </button>
           
           <a 
             href="#servicios"
-            className="text-sm tracking-[0.3em] text-white/60 hover:text-white transition-colors duration-500"
+            className="hero-cta hero-cta--secondary"
+            aria-label="Descubrir más sobre nuestros servicios"
           >
             DESCUBRIR MÁS
           </a>
         </div>
         
-        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
-          <ChevronDown className="w-6 h-6 text-white/30 animate-bounce" />
-        </div>
+        {/* Scroll Indicator */}
+        {shouldRenderAnimations && (
+          <div className="hero-content__scroll-indicator" aria-hidden="true">
+            <ChevronDown className="hero-content__scroll-icon" />
+          </div>
+        )}
+      </div>
+      
+      {/* Accessibility Enhancements */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {isInView ? 'Sección principal cargada' : ''}
       </div>
     </section>
   );

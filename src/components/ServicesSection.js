@@ -1,78 +1,309 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { services } from '../data/constants';
+import { 
+  getDeviceType, 
+  getScreenCategory, 
+  isLowEndDevice, 
+  prefersReducedMotion,
+  canHover,
+  hasPointerFine
+} from '../utils/deviceDetection';
+import { useLazyLoading, useLazyGrid, useSkeletonLoading } from '../hooks/useLazyLoading';
+import { useResponsiveGrid, useGridItemAnimation } from '../hooks/useResponsiveGrid';
+import { useResponsiveImage } from '../hooks/useResponsiveImage';
+import '../styles/services-section.css';
 
 const ServicesSection = () => {
+  // Device capabilities detection
+  const deviceInfo = useMemo(() => ({
+    type: getDeviceType(),
+    screenCategory: getScreenCategory(),
+    isLowEnd: isLowEndDevice(),
+    reducedMotion: prefersReducedMotion(),
+    canHover: canHover(),
+    hasPointerFine: hasPointerFine()
+  }), []);
+
+  // Grid configuration
+  const gridOptions = useMemo(() => ({
+    minItemWidth: deviceInfo.screenCategory === 'xs-mobile' ? 240 : 280,
+    maxItemWidth: 400,
+    gap: deviceInfo.type.isMobile ? 16 : 24,
+    aspectRatio: deviceInfo.type.isMobile ? 'auto' : '1/1.3',
+    enableInfiniteScroll: false,
+    itemsPerPage: 8
+  }), [deviceInfo]);
+
+  // Responsive grid hook
+  const {
+    containerRef,
+    gridConfig,
+    paginatedItems,
+    getGridStyles,
+    getItemStyles,
+    getTouchProps
+  } = useResponsiveGrid(services, gridOptions);
+
+  // Lazy loading for grid items
+  const {
+    shouldLoadItem,
+    loadedCount
+  } = useLazyGrid(services, {
+    batchSize: deviceInfo.isLowEnd ? 2 : 4,
+    staggerDelay: deviceInfo.reducedMotion ? 0 : 100
+  });
+
   return (
-    <section id="servicios" className="py-32 relative">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="mb-24">
-          <div className="flex items-center mb-6">
-            <div className="w-12 h-[0.5px] bg-white/30"></div>
-            <p className="text-xs tracking-[0.3em] text-white/50 mx-6">01</p>
-            <div className="flex-1 h-[0.5px] bg-white/10"></div>
+    <section 
+      id="servicios" 
+      className="services-section"
+      role="region"
+      aria-labelledby="services-title"
+    >
+      <div className="services-section__container">
+        {/* Section Header */}
+        <header className="services-section__header">
+          <div className="services-section__badge" aria-hidden="true">
+            <div className="services-section__badge-line"></div>
+            <span className="services-section__badge-number">01</span>
+            <div className="services-section__badge-line services-section__badge-line--extend"></div>
           </div>
-          <h2 className="text-5xl md:text-7xl font-thin tracking-[0.1em]">SERVICIOS</h2>
-          <p className="text-lg text-white/60 mt-4 max-w-2xl">
+          
+          <h2 
+            id="services-title"
+            className="services-section__title"
+          >
+            SERVICIOS
+          </h2>
+          
+          <p className="services-section__description">
             Cada servicio es una sinfonía de precisión, dedicación y arte masculino
           </p>
-        </div>
+        </header>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Services Grid */}
+        <div 
+          ref={containerRef}
+          className="services-grid"
+          style={getGridStyles()}
+          role="grid"
+          aria-label="Servicios disponibles"
+          {...getTouchProps()}
+        >
           {services.map((service, index) => (
-            <div 
-              key={service.id} 
-              className="group relative"
-              style={{
-                animation: 'fadeInUp 0.8s ease-out forwards',
-                animationDelay: `${index * 0.1}s`,
-                opacity: 0
-              }}
-            >
-              {service.popular && (
-                <div className="absolute -top-4 -right-4 z-10">
-                  <div className="bg-white text-black text-xs tracking-[0.2em] px-4 py-2">
-                    POPULAR
-                  </div>
-                </div>
-              )}
-              
-              <div className="relative h-full border border-white/10 p-8 transition-all duration-700 hover:border-white/30 bg-black/50 backdrop-blur-sm">
-                <div className="relative h-48 mb-8 overflow-hidden">
-                  <img 
-                    src={service.icon} 
-                    alt={service.name} 
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
-                </div>
-                
-                <h3 className="text-lg tracking-[0.2em] mb-2">{service.name}</h3>
-                <p className="text-white/60 text-sm mb-6">{service.description}</p>
-                
-                <div className="flex items-baseline justify-between mb-6 border-b border-white/10 pb-6">
-                  <div>
-                    <span className="text-3xl font-thin">${service.price}</span>
-                    <span className="text-white/40 text-xs ml-2">USD</span>
-                  </div>
-                  <span className="text-xs tracking-[0.2em] text-white/50">{service.duration}</span>
-                </div>
-                
-                <ul className="space-y-3">
-                  {service.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start text-xs text-white/50">
-                      <div className="w-1 h-1 bg-white/50 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                
-                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
-              </div>
-            </div>
+            <ServiceCard
+              key={service.id}
+              service={service}
+              index={index}
+              shouldLoad={shouldLoadItem(index)}
+              deviceInfo={deviceInfo}
+              gridConfig={gridConfig}
+              getItemStyles={getItemStyles}
+            />
           ))}
         </div>
+        
+        {/* Loading Progress Indicator */}
+        {loadedCount < services.length && (
+          <div 
+            className="services-section__loading-indicator"
+            role="status"
+            aria-label={`Cargando servicios: ${loadedCount} de ${services.length}`}
+          >
+            <div 
+              className="services-section__progress-bar"
+              style={{ width: `${(loadedCount / services.length) * 100}%` }}
+            />
+          </div>
+        )}
       </div>
     </section>
+  );
+};
+
+// Individual Service Card Component
+const ServiceCard = ({ service, index, shouldLoad, deviceInfo, gridConfig, getItemStyles }) => {
+  // Lazy loading for the card
+  const {
+    elementRef,
+    isIntersecting,
+    isLoaded,
+    isError,
+    handleImageLoad
+  } = useLazyLoading({
+    threshold: deviceInfo.isLowEnd ? 0.05 : 0.1,
+    rootMargin: deviceInfo.type.isMobile ? '20px' : '50px',
+    triggerOnce: true
+  });
+
+  // Skeleton loading state
+  const {
+    showSkeleton
+  } = useSkeletonLoading(!shouldLoad || !isIntersecting, {
+    minLoadingTime: deviceInfo.isLowEnd ? 800 : 500,
+    maxLoadingTime: deviceInfo.isLowEnd ? 4000 : 3000
+  });
+
+  // Grid item animation
+  const {
+    getAnimationStyles
+  } = useGridItemAnimation(index, {
+    delay: 200,
+    staggerDelay: deviceInfo.reducedMotion ? 0 : 100,
+    animationType: 'fadeInUp'
+  });
+
+  // Responsive image
+  const {
+    optimizedSrc,
+    isLoaded: imageLoaded
+  } = useResponsiveImage(service.icon, {
+    sizes: {
+      mobile: 400,
+      tablet: 600,
+      desktop: 800
+    },
+    quality: deviceInfo.isLowEnd ? 60 : 80,
+    format: 'webp'
+  });
+
+  // Handle service card interaction
+  const handleCardClick = useCallback(() => {
+    // Could integrate with booking modal or service details
+    console.log(`Selected service: ${service.name}`);
+  }, [service.name]);
+
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleCardClick();
+    }
+  }, [handleCardClick]);
+
+  // Render skeleton if loading
+  if (showSkeleton) {
+    return (
+      <article 
+        ref={elementRef}
+        className="services-grid__item"
+        style={{ ...getItemStyles(), ...getAnimationStyles() }}
+        aria-hidden="true"
+      >
+        <div className="service-card service-card--loading">
+          <div className="service-card__skeleton">
+            <div className="skeleton-image" />
+            <div className="skeleton-content">
+              <div className="skeleton-title" />
+              <div className="skeleton-description" />
+              <div className="skeleton-price" />
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  return (
+    <article 
+      ref={elementRef}
+      className="services-grid__item"
+      style={{ ...getItemStyles(), ...getAnimationStyles() }}
+      role="gridcell"
+    >
+      <div 
+        className="service-card"
+        onClick={handleCardClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
+        aria-label={`Seleccionar servicio ${service.name}, $${service.price} USD, ${service.duration}`}
+        aria-describedby={`service-${service.id}-description`}
+      >
+        {/* Popular Badge */}
+        {service.popular && (
+          <div 
+            className="service-card__popular-badge"
+            aria-label="Servicio popular"
+          >
+            POPULAR
+          </div>
+        )}
+        
+        {/* Image Container */}
+        <div className="service-card__image-container">
+          {isIntersecting && (
+            <>
+              <img 
+                src={optimizedSrc}
+                alt={`Imagen del servicio ${service.name}`}
+                className="service-card__image"
+                loading="lazy"
+                decoding="async"
+                onLoad={() => handleImageLoad(optimizedSrc)}
+                style={{
+                  opacity: imageLoaded ? 1 : 0,
+                  transition: 'opacity 0.4s ease-out'
+                }}
+              />
+              <div className="service-card__image-overlay" aria-hidden="true" />
+            </>
+          )}
+        </div>
+        
+        {/* Content */}
+        <div className="service-card__content">
+          <header>
+            <h3 className="service-card__title">
+              {service.name}
+            </h3>
+            <p 
+              id={`service-${service.id}-description`}
+              className="service-card__description"
+            >
+              {service.description}
+            </p>
+          </header>
+          
+          {/* Features List */}
+          <ul 
+            className="service-card__features"
+            aria-label={`Características del servicio ${service.name}`}
+          >
+            {service.features.slice(0, deviceInfo.type.isMobile ? 3 : 4).map((feature, idx) => (
+              <li key={idx} className="service-card__feature">
+                <div className="service-card__feature-bullet" aria-hidden="true" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+          
+          {/* Price Section */}
+          <footer className="service-card__price-section">
+            <div className="service-card__price-container">
+              <span 
+                className="service-card__price"
+                aria-label={`Precio: ${service.price} dólares`}
+              >
+                ${service.price}
+              </span>
+              <span className="service-card__currency" aria-hidden="true">
+                USD
+              </span>
+            </div>
+            <span 
+              className="service-card__duration"
+              aria-label={`Duración: ${service.duration}`}
+            >
+              {service.duration}
+            </span>
+          </footer>
+        </div>
+        
+        {/* Bottom Line Animation */}
+        <div className="service-card__bottom-line" aria-hidden="true" />
+      </div>
+    </article>
   );
 };
 

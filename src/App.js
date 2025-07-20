@@ -40,13 +40,6 @@ const BarberiaUltraPremium = () => {
 
     const handleScroll = () => {
       setScrollY(window.scrollY);
-      
-      const navbar = document.getElementById('navbar');
-      if (window.scrollY > 50) {
-        navbar.classList.add('navbar-scrolled');
-      } else {
-        navbar.classList.remove('navbar-scrolled');
-      }
     };
 
     const handleMouseMove = (e) => {
