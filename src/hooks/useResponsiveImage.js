@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
+import { getViewportDimensions } from '../utils/deviceDetection';
 
 export const useResponsiveImage = (baseSrc, options = {}) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isError, setIsError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState('');
+  const [viewportData, setViewportData] = useState(() => getViewportDimensions());
 
   const {
     sizes = {
@@ -18,11 +20,19 @@ export const useResponsiveImage = (baseSrc, options = {}) => {
     fallbackFormat = 'jpg'
   } = options;
 
-  // Get device pixel ratio with fallback
-  const devicePixelRatio = window.devicePixelRatio || 1;
-  
-  // Get viewport dimensions
-  const viewportWidth = window.innerWidth;
+  // Update viewport dimensions on resize
+  useEffect(() => {
+    const updateViewport = () => {
+      setViewportData(getViewportDimensions());
+    };
+
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
+
+  // Get device pixel ratio and viewport width from stable state
+  const devicePixelRatio = viewportData.ratio;
+  const viewportWidth = viewportData.width;
 
   // Determine optimal image size based on viewport and DPR
   const optimalSize = useMemo(() => {

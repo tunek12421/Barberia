@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getDeviceType, isLowEndDevice, prefersReducedMotion, canHover } from '../utils/deviceDetection';
+import { getDeviceInfo } from '../utils/deviceDetection';
 
 // Hook for ultra-responsive carousel with adaptive navigation modes
 export const useResponsiveCarousel = (items = [], options = {}) => {
@@ -40,18 +40,8 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     velocityHistory: []
   });
 
-  // Device capabilities
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion(),
-      canHover: canHover()
-    };
-  }, []);
+  // Device capabilities - use cached info to prevent loops
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
 
   // Determine navigation mode based on device and viewport
   const determineNavigationMode = useCallback(() => {
@@ -88,7 +78,7 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     }
 
     return () => resizeObserver.disconnect();
-  }, [determineNavigationMode]);
+  }, []); // Remove determineNavigationMode dependency to prevent loop
 
   // Calculate momentum velocity
   const calculateVelocity = useCallback(() => {
@@ -172,7 +162,15 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     goToSlideRef.current?.(currentIndex - 1, userInitiated);
   }, [currentIndex]);
 
-  // Auto-play functionality
+  // Auto-play functionality - use refs to avoid infinite loops
+  const currentIndexRef = useRef(currentIndex);
+  const isDraggingRef = useRef(isDragging);
+  const isTransitioningRef = useRef(isTransitioning);
+  
+  currentIndexRef.current = currentIndex;
+  isDraggingRef.current = isDragging;
+  isTransitioningRef.current = isTransitioning;
+
   useEffect(() => {
     if (!isAutoPlaying || deviceInfo.reducedMotion || items.length <= 1) {
       if (autoPlayRef.current) {
@@ -182,8 +180,8 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     }
 
     autoPlayRef.current = setInterval(() => {
-      if (!isDragging && !isTransitioning) {
-        goToSlideRef.current?.(currentIndex + 1, false);
+      if (!isDraggingRef.current && !isTransitioningRef.current) {
+        goToSlideRef.current?.(currentIndexRef.current + 1, false);
       }
     }, autoPlayDelay);
 
@@ -196,10 +194,8 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
     isAutoPlaying, 
     deviceInfo.reducedMotion, 
     items.length, 
-    isDragging, 
-    isTransitioning,
     autoPlayDelay
-  ]); // Remove currentIndex to prevent infinite loop
+  ]);
 
   // Auto-play controls
   const pauseAutoPlay = useCallback(() => {
@@ -428,15 +424,7 @@ export const useResponsiveCarousel = (items = [], options = {}) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-    deviceInfo.isMobile
-  ]);
+  }, []); // Remove all dependencies to prevent infinite loops
 
   // Get transform for current slide
   const getSlideTransform = useCallback(() => {

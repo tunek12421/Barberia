@@ -1,352 +1,548 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
-import { Search, X, RotateCcw, Filter } from 'lucide-react';
-import { galleryImages } from '../data/constants';
 import { 
-  getDeviceType, 
-  getScreenCategory, 
-  isLowEndDevice, 
-  prefersReducedMotion,
-  canHover,
-  hasPointerFine
-} from '../utils/deviceDetection';
+  Search, 
+  X, 
+  RotateCcw, 
+  Filter, 
+  Grid3X3, 
+  Layout, 
+  ChevronDown,
+  Eye,
+  Heart,
+  Share2,
+  ZoomIn,
+  ArrowRight,
+  Sparkles,
+  Star
+} from 'lucide-react';
+import { galleryImages } from '../data/constants';
+import { getDeviceInfo } from '../utils/deviceDetection';
 import { useGalleryFiltering } from '../hooks/useGalleryFiltering';
-import '../styles/gallery-section.css';
+import { usePremiumGallery } from '../hooks/usePremiumGallery';
+import { useLightbox } from '../hooks/useLightbox';
+import '../styles/premium-gallery.css';
+
+// Premium Gallery Image Component
+const PremiumGalleryImage = ({ image, index, layoutConfig, onImageClick, isHero = false, isFeatured = false }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  
+  const imageRef = useRef(null);
+  
+  const handleImageLoad = useCallback(() => {
+    setIsLoaded(true);
+  }, []);
+  
+  const handleImageClick = useCallback(() => {
+    onImageClick(image, index);
+  }, [image, index, onImageClick]);
+  
+  const toggleFavorite = useCallback((e) => {
+    e.stopPropagation();
+    setIsFavorite(!isFavorite);
+  }, [isFavorite]);
+  
+  const imageClasses = useMemo(() => {
+    const baseClasses = ['premium-gallery__image'];
+    if (isHero) baseClasses.push('premium-gallery__image--hero');
+    if (isFeatured) baseClasses.push('premium-gallery__image--featured');
+    if (isLoaded) baseClasses.push('premium-gallery__image--loaded');
+    if (isHovered) baseClasses.push('premium-gallery__image--hovered');
+    return baseClasses.join(' ');
+  }, [isHero, isFeatured, isLoaded, isHovered]);
+  
+  return (
+    <article 
+      ref={imageRef}
+      className={imageClasses}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleImageClick}
+      style={{
+        '--stagger-delay': `${index * (layoutConfig.enableStagger ? 100 : 0)}ms`
+      }}
+    >
+      {/* Image Container */}
+      <div className="premium-gallery__image-container">
+        <img
+          src={image.url}
+          alt={`${image.service} - ${image.description}`}
+          className="premium-gallery__img"
+          onLoad={handleImageLoad}
+          loading="lazy"
+        />
+        
+        {/* Image Overlay */}
+        <div className="premium-gallery__overlay">
+          <div className="premium-gallery__overlay-content">
+            {/* Quick Actions */}
+            <div className="premium-gallery__quick-actions">
+              <button
+                onClick={toggleFavorite}
+                className={`premium-gallery__action ${isFavorite ? 'premium-gallery__action--active' : ''}`}
+                aria-label="Agregar a favoritos"
+              >
+                <Heart className="premium-gallery__action-icon" />
+              </button>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="premium-gallery__action"
+                aria-label="Compartir"
+              >
+                <Share2 className="premium-gallery__action-icon" />
+              </button>
+              <button
+                onClick={handleImageClick}
+                className="premium-gallery__action premium-gallery__action--primary"
+                aria-label="Ver en grande"
+              >
+                <ZoomIn className="premium-gallery__action-icon" />
+              </button>
+            </div>
+            
+            {/* Image Info */}
+            <div className="premium-gallery__info">
+              <h3 className="premium-gallery__service">{image.service}</h3>
+              <p className="premium-gallery__description">{image.description}</p>
+              <span className="premium-gallery__category">{image.category}</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Badges */}
+        <div className="premium-gallery__badges">
+          {image.featured && (
+            <span className="premium-gallery__badge premium-gallery__badge--featured">
+              <Star className="premium-gallery__badge-icon" />
+              Destacado
+            </span>
+          )}
+          {isHero && (
+            <span className="premium-gallery__badge premium-gallery__badge--hero">
+              <Sparkles className="premium-gallery__badge-icon" />
+              Showcase
+            </span>
+          )}
+        </div>
+        
+        {/* Loading State */}
+        {!isLoaded && (
+          <div className="premium-gallery__loading">
+            <div className="premium-gallery__loading-skeleton" />
+          </div>
+        )}
+      </div>
+    </article>
+  );
+};
+
+// Gallery Controls Component
+const GalleryControls = ({ 
+  viewMode, 
+  onViewModeChange, 
+  paginationInfo, 
+  onLoadMore, 
+  isLoading,
+  activeFilter,
+  availableFilters,
+  onFilterChange,
+  searchQuery,
+  onSearchChange,
+  onResetFilters 
+}) => {
+  const [showFilters, setShowFilters] = useState(false);
+  
+  return (
+    <div className="premium-gallery__controls">
+      {/* Search and Filter Bar */}
+      <div className="premium-gallery__toolbar">
+        {/* Search */}
+        <div className="premium-gallery__search">
+          <Search className="premium-gallery__search-icon" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Buscar por servicio..."
+            className="premium-gallery__search-input"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => onSearchChange('')}
+              className="premium-gallery__search-clear"
+            >
+              <X />
+            </button>
+          )}
+        </div>
+        
+        {/* Filters */}
+        <div className="premium-gallery__filter-group">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="premium-gallery__filter-toggle"
+          >
+            <Filter />
+            Filtros
+            <ChevronDown className={showFilters ? 'premium-gallery__chevron--open' : ''} />
+          </button>
+          
+          {showFilters && (
+            <div className="premium-gallery__filter-dropdown">
+              {availableFilters.map(filter => (
+                <button
+                  key={filter.value}
+                  onClick={() => onFilterChange(filter.value)}
+                  className={`premium-gallery__filter-option ${
+                    activeFilter === filter.value ? 'premium-gallery__filter-option--active' : ''
+                  }`}
+                >
+                  {filter.label}
+                  <span className="premium-gallery__filter-count">({filter.count})</span>
+                </button>
+              ))}
+              <button
+                onClick={onResetFilters}
+                className="premium-gallery__filter-reset"
+              >
+                <RotateCcw />
+                Limpiar filtros
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {/* View Mode Selector */}
+        <div className="premium-gallery__view-modes">
+          <button
+            onClick={() => onViewModeChange('curated')}
+            className={`premium-gallery__view-mode ${viewMode === 'curated' ? 'premium-gallery__view-mode--active' : ''}`}
+            title="Vista curada"
+          >
+            <Sparkles />
+          </button>
+          <button
+            onClick={() => onViewModeChange('grid')}
+            className={`premium-gallery__view-mode ${viewMode === 'grid' ? 'premium-gallery__view-mode--active' : ''}`}
+            title="Vista grid"
+          >
+            <Grid3X3 />
+          </button>
+          <button
+            onClick={() => onViewModeChange('masonry')}
+            className={`premium-gallery__view-mode ${viewMode === 'masonry' ? 'premium-gallery__view-mode--active' : ''}`}
+            title="Vista masonry"
+          >
+            <Layout />
+          </button>
+        </div>
+      </div>
+      
+      {/* Gallery Stats */}
+      <div className="premium-gallery__stats">
+        <span className="premium-gallery__stat">
+          <Eye />
+          Mostrando {paginationInfo.visibleCount} de {paginationInfo.totalItems}
+        </span>
+        {paginationInfo.hasMore && (
+          <button
+            onClick={onLoadMore}
+            disabled={isLoading}
+            className="premium-gallery__load-more"
+          >
+            {isLoading ? (
+              <>
+                <div className="premium-gallery__spinner" />
+                Cargando...
+              </>
+            ) : (
+              <>
+                Mostrar más ({paginationInfo.remainingCount} restantes)
+                <ArrowRight />
+              </>
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const GallerySection = () => {
-  // Performance monitoring (disabled to avoid infinite loops)
-  // const { startMeasurement, endMeasurement } = usePerformanceMonitoring('GallerySection');
-  
-  // Device capabilities detection - static since these don't change during component lifecycle
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      screenCategory: getScreenCategory(),
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion(),
-      canHover: canHover(),
-      hasPointerFine: hasPointerFine()
-    };
-  }, []); // Static device info
+  // Device detection - use cached info to prevent re-renders
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
 
-  // Section visibility - simplified
   const sectionRef = useRef(null);
 
-  // Gallery filtering with search
+  // Gallery filtering
   const {
     activeFilter,
     searchQuery,
     filteredItems,
     availableFilters,
-    isFiltering,
     handleFilterChange,
     handleSearchChange,
-    clearSearch,
-    resetFilters,
-    getFilterClasses,
-    stats: filterStats
+    resetFilters
   } = useGalleryFiltering(galleryImages, {
     searchFields: ['service', 'description', 'category'],
     filterKey: 'category',
     defaultFilter: 'all',
     animationStagger: deviceInfo.isLowEnd ? 150 : 100,
     debounceMs: deviceInfo.isLowEnd ? 500 : 300
-    // Remove callbacks to prevent infinite loops
   });
 
+  // Premium Gallery Hook
+  const {
+    visibleImages,
+    gallerySections,
+    paginationInfo,
+    isLoading,
+    viewMode,
+    changeViewMode,
+    loadMore,
+    getLayoutConfig,
+    performanceMetrics
+  } = usePremiumGallery(filteredItems, {
+    initialItemsPerPage: deviceInfo.isMobile ? 4 : deviceInfo.isTablet ? 6 : 8,
+    loadMoreIncrement: deviceInfo.isMobile ? 2 : 4,
+    prioritizeFeatured: true,
+    enableCuration: true
+  });
 
-  // Search state
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  // Lightbox for full-size viewing
+  const {
+    isOpen: lightboxOpen,
+    currentIndex: lightboxIndex,
+    openLightbox,
+    closeLightbox,
+    nextImage: goToNext,
+    prevImage: goToPrevious,
+    handleBackdropClick
+  } = useLightbox(visibleImages);
 
-  // Handle image click - simplified
+  // Handle image click
   const handleImageClick = useCallback((image, index) => {
-    // Simple alert for now - will replace with working lightbox later
-    alert(`${image.service}: ${image.description}`);
-  }, []);
+    openLightbox(index);
+  }, [openLightbox]);
 
+  // Get layout configuration
+  const layoutConfig = getLayoutConfig();
 
-  // Toggle search
-  const toggleSearch = useCallback(() => {
-    setIsSearchOpen(prev => !prev);
-    if (isSearchOpen) {
-      clearSearch();
+  // Render gallery based on view mode
+  const renderGalleryContent = () => {
+    if (viewMode === 'curated') {
+      return (
+        <div className="premium-gallery__curated">
+          {/* Hero Section */}
+          {gallerySections.hero.length > 0 && (
+            <section className="premium-gallery__hero-section">
+              <h3 className="premium-gallery__section-title">
+                <Sparkles className="premium-gallery__section-icon" />
+                Trabajo Destacado
+              </h3>
+              <div className="premium-gallery__hero-grid">
+                {gallerySections.hero.map((image, index) => (
+                  <PremiumGalleryImage
+                    key={`hero-${image.url}`}
+                    image={image}
+                    index={index}
+                    layoutConfig={layoutConfig}
+                    onImageClick={handleImageClick}
+                    isHero={true}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Featured Section */}
+          {gallerySections.featured.length > 0 && (
+            <section className="premium-gallery__featured-section">
+              <h3 className="premium-gallery__section-title">
+                <Star className="premium-gallery__section-icon" />
+                Portafolio Premium
+              </h3>
+              <div className="premium-gallery__featured-grid">
+                {gallerySections.featured.map((image, index) => (
+                  <PremiumGalleryImage
+                    key={`featured-${image.url}`}
+                    image={image}
+                    index={gallerySections.hero.length + index}
+                    layoutConfig={layoutConfig}
+                    onImageClick={handleImageClick}
+                    isFeatured={true}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Showcase Section */}
+          {gallerySections.showcase.length > 0 && (
+            <section className="premium-gallery__showcase-section">
+              <h3 className="premium-gallery__section-title">
+                <Eye className="premium-gallery__section-icon" />
+                Más Trabajos
+              </h3>
+              <div className="premium-gallery__showcase-grid">
+                {gallerySections.showcase.slice(0, visibleImages.length - gallerySections.hero.length - gallerySections.featured.length).map((image, index) => (
+                  <PremiumGalleryImage
+                    key={`showcase-${image.url}`}
+                    image={image}
+                    index={gallerySections.hero.length + gallerySections.featured.length + index}
+                    layoutConfig={layoutConfig}
+                    onImageClick={handleImageClick}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      );
+    } else {
+      // Grid or Masonry view
+      return (
+        <div className={`premium-gallery__${viewMode}`}>
+          <div className={`premium-gallery__${viewMode}-container`}>
+            {visibleImages.map((image, index) => (
+              <PremiumGalleryImage
+                key={`${viewMode}-${image.url}`}
+                image={image}
+                index={index}
+                layoutConfig={layoutConfig}
+                onImageClick={handleImageClick}
+                isFeatured={image.featured}
+              />
+            ))}
+          </div>
+        </div>
+      );
     }
-  }, [isSearchOpen, clearSearch]);
-
-  // Toggle filter menu (mobile)
-  const toggleFilterMenu = useCallback(() => {
-    setIsFilterMenuOpen(prev => !prev);
-  }, []);
+  };
 
   return (
     <section 
       ref={sectionRef}
-      id="galería" 
-      className="gallery-section"
+      id="galeria" 
+      className="premium-gallery-section"
       aria-labelledby="gallery-title"
     >
-      <div className="gallery-section__container">
+      <div className="premium-gallery-section__container">
         {/* Section Header */}
-        <header className="gallery-section__header">
-          <div className="gallery-section__badge" aria-hidden="true">
-            <div className="gallery-section__badge-line"></div>
-            <span className="gallery-section__badge-number">03</span>
-            <div className="gallery-section__badge-line gallery-section__badge-line--extend"></div>
+        <header className="premium-gallery-section__header">
+          <div className="premium-gallery-section__badge" aria-hidden="true">
+            PORTAFOLIO
           </div>
-          
-          <h2 
-            id="gallery-title"
-            className="gallery-section__title"
-          >
-            PORTFOLIO
+          <h2 id="gallery-title" className="premium-gallery-section__title">
+            Galería Premium
           </h2>
-          
-          <p className="gallery-section__description">
-            Una curación de nuestro trabajo más refinado
+          <p className="premium-gallery-section__subtitle">
+            Descubre la excelencia en cada corte, la maestría en cada afeitado
           </p>
-
         </header>
 
-        {/* Controls */}
-        <div className="gallery-controls">
-          {/* Search Toggle */}
-          <div className="gallery-controls__search">
-            <button
-              onClick={toggleSearch}
-              className={`gallery-search-toggle ${isSearchOpen ? 'gallery-search-toggle--active' : ''}`}
-              aria-label={isSearchOpen ? 'Cerrar búsqueda' : 'Abrir búsqueda'}
-              aria-expanded={isSearchOpen}
-            >
-              <Search size={deviceInfo.isMobile ? 18 : 20} />
-            </button>
+        {/* Gallery Controls */}
+        <GalleryControls
+          viewMode={viewMode}
+          onViewModeChange={changeViewMode}
+          paginationInfo={paginationInfo}
+          onLoadMore={loadMore}
+          isLoading={isLoading}
+          activeFilter={activeFilter}
+          availableFilters={availableFilters}
+          onFilterChange={handleFilterChange}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          onResetFilters={resetFilters}
+        />
 
-            {/* Search Input */}
-            <div className={`gallery-search-input ${isSearchOpen ? 'gallery-search-input--open' : ''}`}>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Buscar en galería..."
-                className="gallery-search-field"
-                aria-label="Buscar en galería"
-              />
-              {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="gallery-search-clear"
-                  aria-label="Limpiar búsqueda"
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Filter Toggle (Mobile) */}
-          {deviceInfo.isMobile && (
-            <button
-              onClick={toggleFilterMenu}
-              className={`gallery-filter-toggle ${isFilterMenuOpen ? 'gallery-filter-toggle--active' : ''}`}
-              aria-label="Filtros"
-              aria-expanded={isFilterMenuOpen}
-            >
-              <Filter size={18} />
-              {filterStats.activeFilters > 0 && (
-                <span className="gallery-filter-badge">{filterStats.activeFilters}</span>
-              )}
-            </button>
-          )}
-
-          {/* Filters */}
-          <div className={`gallery-filters ${isFilterMenuOpen ? 'gallery-filters--open' : ''}`}>
-            {availableFilters.map((filter) => (
-              <button
-                key={filter.key}
-                onClick={() => handleFilterChange(filter.key)}
-                className={getFilterClasses(filter.key)}
-                aria-label={`Filtrar por ${filter.label}`}
-                aria-pressed={activeFilter === filter.key}
-              >
-                <span className="gallery-filter__label">{filter.label}</span>
-                {filter.count > 0 && (
-                  <span className="gallery-filter__count">{filter.count}</span>
-                )}
-              </button>
-            ))}
-
-            {/* Reset Filters */}
-            {(activeFilter !== 'all' || searchQuery) && (
-              <button
-                onClick={resetFilters}
-                className="gallery-filter-reset"
-                aria-label="Limpiar todos los filtros"
-              >
-                <RotateCcw size={16} />
-                <span>Limpiar</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Loading Indicator */}
-        {isFiltering && (
-          <div className="gallery-loading" role="status" aria-label="Filtrando galería">
-            <div className="gallery-loading__spinner"></div>
-            <span className="gallery-loading__text">Filtrando...</span>
-          </div>
-        )}
-
-        {/* Gallery Grid - Simplified */}
-        <div 
-          style={{
-            display: 'grid',
-            gridTemplateColumns: deviceInfo.isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '16px',
-            minHeight: '400px',
-            width: '100%',
-            padding: '0',
-            margin: '0'
-          }}
-        >
-          {filteredItems.map((item, index) => (
-            <div
-              key={item.url}
-              style={{
-                position: 'relative',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                aspectRatio: '1 / 1.2',
-                cursor: 'pointer',
-                backgroundColor: '#f0f0f0',
-                border: '1px solid #ddd',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-              }}
-              onClick={() => handleImageClick(item, index)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.02)';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-                const overlay = e.currentTarget.querySelector('.gallery-item__overlay');
-                if (overlay) {
-                  overlay.style.opacity = '1';
-                  overlay.style.transform = 'translateY(0)';
-                  overlay.style.pointerEvents = 'auto';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = 'none';
-                const overlay = e.currentTarget.querySelector('.gallery-item__overlay');
-                if (overlay) {
-                  overlay.style.opacity = '0';
-                  overlay.style.transform = 'translateY(10px)';
-                  overlay.style.pointerEvents = 'none';
-                }
-              }}
-            >
-              <img
-                src={item.url}
-                alt={item.description}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  backgroundColor: '#f0f0f0',
-                  border: 'none',
-                  outline: 'none',
-                  opacity: 1,
-                  visibility: 'visible'
-                }}
-                loading="lazy"
-                onLoad={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              />
-              <div 
-                className="gallery-item__overlay"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, transparent 80%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                  padding: '16px',
-                  color: 'white',
-                  opacity: 0,
-                  transition: 'all 0.3s ease',
-                  transform: 'translateY(10px)',
-                  pointerEvents: 'none'
-                }}
-              >
-                <h4 style={{ 
-                  margin: '0 0 8px 0', 
-                  fontSize: '1.2rem', 
-                  fontWeight: '700',
-                  textShadow: '0 1px 3px rgba(0,0,0,0.5)',
-                  letterSpacing: '0.5px'
-                }}>
-                  {item.service}
-                </h4>
-                <p style={{ 
-                  margin: '0 0 8px 0', 
-                  fontSize: '0.9rem', 
-                  opacity: '0.95',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                  lineHeight: '1.4'
-                }}>
-                  {item.description}
+        {/* Gallery Content */}
+        <div className="premium-gallery-section__content">
+          {visibleImages.length > 0 ? (
+            renderGalleryContent()
+          ) : (
+            <div className="premium-gallery__empty">
+              <div className="premium-gallery__empty-content">
+                <Search className="premium-gallery__empty-icon" />
+                <h3 className="premium-gallery__empty-title">
+                  No se encontraron resultados
+                </h3>
+                <p className="premium-gallery__empty-text">
+                  Intenta ajustar tus filtros o términos de búsqueda
                 </p>
-                <span style={{ 
-                  fontSize: '0.75rem', 
-                  opacity: '0.8', 
-                  textTransform: 'uppercase',
-                  fontWeight: '500',
-                  letterSpacing: '1px',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                  background: 'rgba(255,255,255,0.2)',
-                  padding: '2px 8px',
-                  borderRadius: '12px',
-                  backdropFilter: 'blur(4px)'
-                }}>
-                  {item.category}
-                </span>
+                <button
+                  onClick={resetFilters}
+                  className="premium-gallery__empty-action"
+                >
+                  <RotateCcw />
+                  Limpiar filtros
+                </button>
               </div>
             </div>
-          ))}
+          )}
         </div>
 
-        {/* Empty State */}
-        {filteredItems.length === 0 && !isFiltering && (
-          <div className="gallery-empty" role="status">
-            <div className="gallery-empty__content">
-              <p className="gallery-empty__title">No se encontraron resultados</p>
-              <p className="gallery-empty__description">
-                {searchQuery 
-                  ? `No hay imágenes que coincidan con "${searchQuery}"`
-                  : `No hay imágenes en la categoría "${availableFilters.find(f => f.key === activeFilter)?.label}"`
-                }
-              </p>
-              <button 
-                onClick={resetFilters}
-                className="gallery-empty__reset"
-              >
-                Ver toda la galería
-              </button>
-            </div>
+        {/* Performance Indicator (dev only) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="premium-gallery__performance">
+            <small>
+              Imágenes cargadas: {performanceMetrics.imagesLoaded} | 
+              Memoria estimada: {performanceMetrics.memoryUsage.toFixed(1)}MB |
+              Progreso: {performanceMetrics.loadProgress.toFixed(0)}%
+            </small>
           </div>
         )}
       </div>
 
+      {/* Lightbox */}
+      {lightboxOpen && (
+        <div className="premium-gallery__lightbox">
+          <div className="premium-gallery__lightbox-backdrop" onClick={handleBackdropClick}>
+            <div className="premium-gallery__lightbox-content" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={closeLightbox}
+                className="premium-gallery__lightbox-close"
+                aria-label="Cerrar galería"
+              >
+                <X />
+              </button>
+              
+              <button
+                onClick={goToPrevious}
+                className="premium-gallery__lightbox-nav premium-gallery__lightbox-nav--prev"
+                aria-label="Imagen anterior"
+              >
+                <ArrowRight style={{ transform: 'rotate(180deg)' }} />
+              </button>
+              
+              <img
+                src={visibleImages[lightboxIndex]?.url}
+                alt={visibleImages[lightboxIndex]?.service}
+                className="premium-gallery__lightbox-image"
+              />
+              
+              <button
+                onClick={goToNext}
+                className="premium-gallery__lightbox-nav premium-gallery__lightbox-nav--next"
+                aria-label="Imagen siguiente"
+              >
+                <ArrowRight />
+              </button>
+              
+              <div className="premium-gallery__lightbox-info">
+                <h3>{visibleImages[lightboxIndex]?.service}</h3>
+                <p>{visibleImages[lightboxIndex]?.description}</p>
+                <span className="premium-gallery__lightbox-counter">
+                  {lightboxIndex + 1} de {visibleImages.length}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
-
 
 export default GallerySection;

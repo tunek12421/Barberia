@@ -114,44 +114,162 @@ export const timeSlots = [
 ];
 
 export const galleryImages = [
+  // CORTES - Imágenes específicas de cortes de pelo
   { 
-    url: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=1200&h=800&fit=crop',
+    url: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&h=600&fit=crop&q=80',
     category: 'corte',
     service: 'Corte Ejecutivo',
     description: 'Elegancia contemporánea',
     featured: true
   },
   { 
-    url: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=800&h=800&fit=crop',
+    url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=800&fit=crop&q=80',
     category: 'corte',
     service: 'Fade Artístico',
     description: 'Precisión milimétrica'
   },
   { 
-    url: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1200&h=800&fit=crop',
+    url: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&h=600&fit=crop&q=80',
+    category: 'corte',
+    service: 'Corte Clásico',
+    description: 'Estilo atemporal'
+  },
+  { 
+    url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=850&h=650&fit=crop&q=80',
+    category: 'corte',
+    service: 'Modern Fade',
+    description: 'Tendencia contemporánea'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1614026480577-85ac93ad1dc3?w=900&h=600&fit=crop&q=80',
+    category: 'corte',
+    service: 'Pompadour Style',
+    description: 'Elegancia vintage',
+    featured: true
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1574015974293-817f0ebebb74?w=750&h=850&fit=crop&q=80',
+    category: 'corte',
+    service: 'Side Part Classic',
+    description: 'Elegancia tradicional'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=850&h=650&fit=crop&q=80',
+    category: 'corte',
+    service: 'Slick Back',
+    description: 'Estilo ejecutivo'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1594736797933-d0d39b4e5db0?w=650&h=850&fit=crop&q=80',
+    category: 'corte',
+    service: 'Comb Over Fade',
+    description: 'Elegancia moderna'
+  },
+
+  // BARBAS - Imágenes específicas de barbas y bigotes
+  { 
+    url: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&h=600&fit=crop&q=80',
     category: 'barba',
     service: 'Sculpting Completo',
     description: 'Maestría en cada trazo',
     featured: true
   },
   { 
-    url: 'https://images.unsplash.com/photo-1582771498000-8ad44e6c84db?q=80&w=800&h=1200&fit=crop',
-    category: 'vip',
-    service: 'Experiencia Total',
-    description: 'Lujo sin compromisos',
-    featured: false
+    url: 'https://images.unsplash.com/photo-1632781297772-2bd01f8117c2?w=600&h=800&fit=crop&q=80',
+    category: 'barba',
+    service: 'Beard Sculpting',
+    description: 'Contornos perfectos'
   },
   { 
-    url: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=800&h=800&fit=crop',
+    url: 'https://images.unsplash.com/photo-1566207531781-b04adb1e39ce?w=900&h=700&fit=crop&q=80',
+    category: 'barba',
+    service: 'Full Beard Service',
+    description: 'Cuidado completo'
+  },
+  { 
+    url: 'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=750&h=850&fit=crop&q=80',
+    category: 'barba',
+    service: 'Goatee Perfection',
+    description: 'Estilo personalizado'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=800&h=700&fit=crop&q=80',
+    category: 'barba',
+    service: 'Van Dyke Style',
+    description: 'Distinción clásica',
+    featured: true
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?w=850&h=600&fit=crop&q=80',
+    category: 'barba',
+    service: 'Balbo Styling',
+    description: 'Sofisticación italiana'
+  },
+
+  // AFEITADO - Imágenes específicas de afeitado tradicional
+  { 
+    url: 'https://images.unsplash.com/photo-1553521041-d168abd31de3?w=800&h=800&fit=crop&q=80',
     category: 'afeitado',
     service: 'Afeitado Real',
     description: 'Tradición y perfección'
   },
   { 
-    url: 'https://images.unsplash.com/photo-1519415943484-9fa1873496d4?q=80&w=1200&h=800&fit=crop',
+    url: 'https://images.unsplash.com/photo-1588771598044-6d6065fb7d4d?w=900&h=600&fit=crop&q=80',
+    category: 'afeitado',
+    service: 'Straight Razor',
+    description: 'La experiencia definitiva',
+    featured: true
+  },
+  { 
+    url: 'https://images.unsplash.com/photo-1596638919734-8ac77de11018?w=600&h=850&fit=crop&q=80',
+    category: 'afeitado',
+    service: 'Hot Towel Service',
+    description: 'Relajación total'
+  },
+  { 
+    url: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=750&fit=crop&q=80',
+    category: 'afeitado',
+    service: 'Classic Shave',
+    description: 'Tradición pura'
+  },
+  { 
+    url: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=1200&h=800&fit=crop',
+    category: 'afeitado',
+    service: 'Precision Shave',
+    description: 'Perfección en cada pasada'
+  },
+
+  // VIP - Ambiente y experiencias de lujo en barbería
+  { 
+    url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=900&fit=crop&q=80',
+    category: 'vip',
+    service: 'Experiencia Total',
+    description: 'Lujo sin compromisos',
+    featured: true
+  },
+  { 
+    url: 'https://images.unsplash.com/photo-1582771498000-8ad44e6c84db?w=700&h=500&fit=crop&q=80',
     category: 'vip',
     service: 'Tratamiento Premium',
-    description: 'Cuidado integral',
+    description: 'Cuidado integral'
+  },
+  { 
+    url: 'https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=800&h=900&fit=crop&q=80',
+    category: 'vip',
+    service: 'Royal Treatment',
+    description: 'Experiencia de lujo'
+  },
+  { 
+    url: 'https://images.unsplash.com/photo-1624052929685-35bc5b67f4b4?w=950&h=650&fit=crop&q=80',
+    category: 'vip',
+    service: 'Executive Package',
+    description: 'Para el profesional exigente'
+  },
+  { 
+    url: 'https://images.unsplash.com/photo-1598887142962-a7d2f6b8ad55?w=650&h=800&fit=crop&q=80',
+    category: 'vip',
+    service: 'Platinum Experience',
+    description: 'El máximo nivel',
     featured: true
   }
 ];

@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { isLowEndDevice, prefersReducedMotion } from '../utils/deviceDetection';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { getDeviceInfo } from '../utils/deviceDetection';
 
 export const useLazyLoading = (options = {}) => {
   const {
@@ -16,8 +16,9 @@ export const useLazyLoading = (options = {}) => {
   const observerRef = useRef(null);
 
   // Device capabilities
-  const isLowEnd = isLowEndDevice();
-  const reducedMotion = prefersReducedMotion();
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
+  const isLowEnd = deviceInfo.isLowEnd;
+  const reducedMotion = deviceInfo.reducedMotion;
 
   // Clean up observer
   const cleanup = useCallback(() => {
@@ -143,8 +144,9 @@ export const useLazyGrid = (items = [], options = {}) => {
 
   const [loadedItems, setLoadedItems] = useState(new Set());
   const [currentBatch, setCurrentBatch] = useState(0);
-  const isLowEnd = isLowEndDevice();
-  const reducedMotion = prefersReducedMotion();
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
+  const isLowEnd = deviceInfo.isLowEnd;
+  const reducedMotion = deviceInfo.reducedMotion;
 
   // Adjust batch size based on device capabilities
   const adjustedBatchSize = isLowEnd ? Math.max(batchSize - 2, 1) : batchSize;
@@ -201,7 +203,8 @@ export const useSkeletonLoading = (isLoading, options = {}) => {
   const [shouldShowSkeleton, setShouldShowSkeleton] = useState(isLoading && showSkeleton);
   const [hasMinTimeElapsed, setHasMinTimeElapsed] = useState(false);
   const startTimeRef = useRef(Date.now());
-  const isLowEnd = isLowEndDevice();
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
+  const isLowEnd = deviceInfo.isLowEnd;
 
   // Adjust timing based on device capabilities
   const adjustedMinTime = isLowEnd ? Math.max(minLoadingTime * 1.5, 750) : minLoadingTime;
@@ -237,12 +240,14 @@ export const useSkeletonLoading = (isLoading, options = {}) => {
       } else {
         // Wait for minimum time to elapse
         const remainingTime = adjustedMinTime - elapsedTime;
-        setTimeout(() => {
+        const delayTimer = setTimeout(() => {
           setShouldShowSkeleton(false);
         }, remainingTime);
+        
+        return () => clearTimeout(delayTimer);
       }
     }
-  }, [isLoading, showSkeleton, adjustedMinTime, adjustedMaxTime, hasMinTimeElapsed]);
+  }, [isLoading, showSkeleton, adjustedMinTime, adjustedMaxTime]);
 
   return {
     showSkeleton: shouldShowSkeleton,

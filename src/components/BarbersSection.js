@@ -2,10 +2,8 @@ import React, { useMemo, useCallback } from 'react';
 import { Award, X, Instagram, Twitter, Linkedin } from 'lucide-react';
 import { barbers } from '../data/constants';
 import { 
-  getDeviceType, 
-  getScreenCategory, 
-  isLowEndDevice, 
-  prefersReducedMotion,
+  getDeviceInfo,
+  getScreenCategory,
   canHover,
   hasPointerFine
 } from '../utils/deviceDetection';
@@ -16,23 +14,17 @@ import { useResponsiveImage } from '../hooks/useResponsiveImage';
 import '../styles/barbers-section.css';
 
 const BarbersSection = () => {
-  // Performance monitoring
-  usePerformanceMonitoring('BarbersSection');
+  // Performance monitoring - temporarily disabled to prevent loops
+  // usePerformanceMonitoring('BarbersSection');
   
-  // Device capabilities detection
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      screenCategory: getScreenCategory(),
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion(),
-      canHover: canHover(),
-      hasPointerFine: hasPointerFine()
-    };
-  }, []); // Static device info
+  // Device capabilities detection - use cached info to prevent loops
+  const baseDeviceInfo = useMemo(() => getDeviceInfo(), []);
+  const deviceInfo = useMemo(() => ({
+    ...baseDeviceInfo,
+    screenCategory: getScreenCategory(),
+    canHover: canHover(),
+    hasPointerFine: hasPointerFine()
+  }), [baseDeviceInfo]); // Depend on stable cached info
 
   // Modal state management
   const {

@@ -1,8 +1,5 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { 
-  getDeviceType, 
-  prefersReducedMotion 
-} from '../utils/deviceDetection';
+import { getDeviceInfo } from '../utils/deviceDetection';
 import { useNavigation } from '../hooks/useNavigation';
 import '../styles/navigation.css';
 
@@ -20,11 +17,12 @@ const Navigation = ({
   // Use custom navigation hook
   const { isScrolled, scrollToSection } = useNavigation();
   
-  // Memoize device info to avoid recalculation
-  const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
-    reducedMotion: prefersReducedMotion()
-  }), []);
+  // Use cached device info to avoid recalculation
+  const baseDeviceInfo = useMemo(() => getDeviceInfo(), []);
+  const deviceInfo = useMemo(() => ({ 
+    type: baseDeviceInfo, 
+    reducedMotion: baseDeviceInfo.reducedMotion 
+  }), [baseDeviceInfo]);
 
   // Navigation items configuration
   const navItems = [

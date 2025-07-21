@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { getDeviceType, isLowEndDevice, prefersReducedMotion } from '../utils/deviceDetection';
+import { getDeviceInfo } from '../utils/deviceDetection';
 
 export const useModalStates = (options = {}) => {
   const {
@@ -17,16 +17,7 @@ export const useModalStates = (options = {}) => {
   const previousFocusRef = useRef(null);
   const bodyScrollPositionRef = useRef(0);
 
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion()
-    };
-  }, []);
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
 
   // Adjusted animation duration for device capabilities
   const adjustedDuration = deviceInfo.reducedMotion ? 0 : 
@@ -230,15 +221,7 @@ export const usePerformanceMonitoring = (componentName = 'Component') => {
 
   const renderStartTimeRef = useRef(0);
   const renderTimesRef = useRef([]);
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice()
-    };
-  }, []);
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
 
   // Start performance measurement
   const startMeasurement = useCallback(() => {
@@ -331,15 +314,7 @@ export const useIntersectionObserver = (options = {}) => {
   const elementRef = useRef(null);
   const observerRef = useRef(null);
 
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice()
-    };
-  }, []);
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
 
   // Adjust threshold for low-end devices
   const adjustedThreshold = deviceInfo.isLowEnd ? Math.max(threshold * 0.5, 0.05) : threshold;

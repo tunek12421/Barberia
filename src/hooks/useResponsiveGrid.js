@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
-  getDeviceType, 
-  getScreenCategory, 
-  isLowEndDevice, 
+  getDeviceInfo,
+  getScreenCategory,
   canHover,
   hasPointerFine,
+  isLowEndDevice,
   prefersReducedMotion
 } from '../utils/deviceDetection';
 
@@ -24,20 +24,14 @@ export const useResponsiveGrid = (items = [], options = {}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isInfiniteLoading, setIsInfiniteLoading] = useState(false);
 
-  // Device capabilities
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      screenCategory: getScreenCategory(),
-      isLowEnd: isLowEndDevice(),
-      canHover: canHover(),
-      hasPointerFine: hasPointerFine(),
-      reducedMotion: prefersReducedMotion()
-    };
-  }, []);
+  // Device capabilities - use cached info to prevent loops
+  const baseDeviceInfo = getDeviceInfo();
+  const deviceInfo = useMemo(() => ({
+    ...baseDeviceInfo,
+    screenCategory: getScreenCategory(),
+    canHover: canHover(),
+    hasPointerFine: hasPointerFine()
+  }), [baseDeviceInfo]);
 
   // Calculate optimal grid configuration
   const gridConfig = useMemo(() => {
@@ -171,7 +165,7 @@ export const useResponsiveGrid = (items = [], options = {}) => {
     observer.observe(infiniteScrollRef.current);
 
     return () => observer.disconnect();
-  }, [enableInfiniteScroll, handleInfiniteScroll]);
+  }, [enableInfiniteScroll]); // Remove handleInfiniteScroll to prevent loops
 
   // Grid styles
   const getGridStyles = useCallback(() => {

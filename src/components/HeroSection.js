@@ -1,10 +1,8 @@
 import React, { useMemo, useRef } from 'react';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import { 
-  getDeviceType, 
-  getScreenCategory, 
-  isLowEndDevice, 
-  prefersReducedMotion,
+  getDeviceInfo,
+  getScreenCategory,
   hasNotch,
   getViewportDimensions
 } from '../utils/deviceDetection';
@@ -15,15 +13,16 @@ import '../styles/hero-section.css';
 const HeroSection = ({ scrollY, setShowBookingModal, heroRef }) => {
   const containerRef = useRef(null);
   
-  // Memoize device detection to avoid repeated calculations
+  // Use cached device detection to avoid repeated calculations
+  const baseDeviceInfo = useMemo(() => getDeviceInfo(), []);
   const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
+    type: baseDeviceInfo,
     screenCategory: getScreenCategory(),
-    isLowEnd: isLowEndDevice(),
-    reducedMotion: prefersReducedMotion(),
+    isLowEnd: baseDeviceInfo.isLowEnd,
+    reducedMotion: baseDeviceInfo.reducedMotion,
     hasNotch: hasNotch(),
     viewport: getViewportDimensions()
-  }), []);
+  }), [baseDeviceInfo]);
 
   // Enhanced parallax with performance optimization
   const { parallaxOffset, isInView } = useParallax({

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getDeviceType, isLowEndDevice, prefersReducedMotion } from '../utils/deviceDetection';
+import { getDeviceInfo } from '../utils/deviceDetection';
 
 // Hook for advanced gallery filtering with search and animation
 export const useGalleryFiltering = (items = [], options = {}) => {
@@ -21,17 +21,8 @@ export const useGalleryFiltering = (items = [], options = {}) => {
   
   const searchTimeoutRef = useRef(null);
 
-  // Device capabilities
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion()
-    };
-  }, []);
+  // Device capabilities - use cached info to prevent re-renders
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
 
 
 
@@ -84,13 +75,19 @@ export const useGalleryFiltering = (items = [], options = {}) => {
 
 
 
+  // Store callback refs to prevent infinite loops
+  const onFilterChangeRef = useRef(onFilterChange);
+  const onSearchChangeRef = useRef(onSearchChange);
+  onFilterChangeRef.current = onFilterChange;
+  onSearchChangeRef.current = onSearchChange;
+
   // Handle filter change
   const handleFilterChange = useCallback((filterKey) => {
     if (filterKey === activeFilter) return;
     
     setActiveFilter(filterKey);
-    onFilterChange && onFilterChange(filterKey);
-  }, [activeFilter, onFilterChange]);
+    onFilterChangeRef.current && onFilterChangeRef.current(filterKey);
+  }, [activeFilter]);
 
   // Handle search with debouncing
   const handleSearchChange = useCallback((query) => {
@@ -101,27 +98,27 @@ export const useGalleryFiltering = (items = [], options = {}) => {
     }
     
     searchTimeoutRef.current = setTimeout(() => {
-      onSearchChange && onSearchChange(query);
+      onSearchChangeRef.current && onSearchChangeRef.current(query);
     }, debounceMs);
-  }, [debounceMs, onSearchChange]);
+  }, [debounceMs]);
 
   // Clear search
   const clearSearch = useCallback(() => {
     setSearchQuery('');
-    onSearchChange && onSearchChange('');
-  }, [onSearchChange]);
+    onSearchChangeRef.current && onSearchChangeRef.current('');
+  }, []);
 
   // Reset all filters
   const resetFilters = useCallback(() => {
     setActiveFilter(defaultFilter);
     setSearchQuery('');
-    onFilterChange && onFilterChange(defaultFilter);
-    onSearchChange && onSearchChange('');
-  }, [defaultFilter, onFilterChange, onSearchChange]);
+    onFilterChangeRef.current && onFilterChangeRef.current(defaultFilter);
+    onSearchChangeRef.current && onSearchChangeRef.current('');
+  }, [defaultFilter]);
 
   // Stabilize searchFields to prevent infinite loops
-  const searchFieldsKey = JSON.stringify(searchFields);
-  const stableSearchFields = useMemo(() => searchFields, [searchFieldsKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stableSearchFields = useMemo(() => searchFields, []);
 
   // Apply filters when key dependencies change
   useEffect(() => {
@@ -202,12 +199,10 @@ export const useFilterAnimations = (isActive, options = {}) => {
   const [animationState, setAnimationState] = useState('idle');
   const timeoutRef = useRef(null);
 
-  const deviceInfo = useMemo(() => ({
-    reducedMotion: prefersReducedMotion()
-  }), []);
+  const animationDeviceInfo = useMemo(() => getDeviceInfo(), []);
 
   useEffect(() => {
-    if (deviceInfo.reducedMotion) return;
+    if (animationDeviceInfo.reducedMotion) return;
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -230,10 +225,10 @@ export const useFilterAnimations = (isActive, options = {}) => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [isActive, enterDuration, exitDuration, deviceInfo.reducedMotion]);
+  }, [isActive, enterDuration, exitDuration, animationDeviceInfo.reducedMotion]);
 
   const getItemStyle = useCallback((index) => {
-    if (deviceInfo.reducedMotion) {
+    if (animationDeviceInfo.reducedMotion) {
       return {};
     }
 
@@ -267,11 +262,11 @@ export const useFilterAnimations = (isActive, options = {}) => {
           transform: 'translateY(0)'
         };
     }
-  }, [animationState, enterDuration, exitDuration, staggerDelay, deviceInfo.reducedMotion]);
+  }, [animationState, enterDuration, exitDuration, staggerDelay, animationDeviceInfo.reducedMotion]);
 
   return {
     animationState,
     getItemStyle,
-    deviceInfo
+    deviceInfo: animationDeviceInfo
   };
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getDeviceType, isLowEndDevice, prefersReducedMotion } from '../utils/deviceDetection';
+import { getDeviceInfo } from '../utils/deviceDetection';
 
 // Hook for advanced lightbox modal with touch gestures and keyboard navigation
 export const useLightbox = (images = [], options = {}) => {
@@ -24,7 +24,6 @@ export const useLightbox = (images = [], options = {}) => {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [imageLoadStates, setImageLoadStates] = useState(new Map());
   
   const lightboxRef = useRef(null);
   const imageRef = useRef(null);
@@ -38,21 +37,15 @@ export const useLightbox = (images = [], options = {}) => {
     startPan: { x: 0, y: 0 }
   });
 
-  // Device capabilities
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion(),
-      supportsFullscreen: !!(document.fullscreenEnabled || 
-        document.webkitFullscreenEnabled || 
-        document.mozFullScreenEnabled || 
-        document.msFullscreenEnabled)
-    };
-  }, []);
+  // Device capabilities - use cached info with additional fullscreen detection
+  const baseDeviceInfo = useMemo(() => getDeviceInfo(), []);
+  const deviceInfo = useMemo(() => ({
+    ...baseDeviceInfo,
+    supportsFullscreen: !!(document.fullscreenEnabled || 
+      document.webkitFullscreenEnabled || 
+      document.mozFullScreenEnabled || 
+      document.msFullscreenEnabled)
+  }), [baseDeviceInfo]);
 
   // Adjusted settings for device performance
   const adjustedSettings = useMemo(() => ({
@@ -370,6 +363,10 @@ export const useLightbox = (images = [], options = {}) => {
           toggleFullscreen();
         }
         break;
+      
+      default:
+        // No action for other keys
+        break;
     }
   }, [
     isOpen, 
@@ -433,12 +430,12 @@ export const useLightbox = (images = [], options = {}) => {
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
       
-      // Touch events
-      if (lightboxRef.current) {
-        const element = lightboxRef.current;
-        element.addEventListener('touchstart', handleTouchStart, { passive: false });
-        element.addEventListener('touchmove', handleTouchMove, { passive: false });
-        element.addEventListener('touchend', handleTouchEnd, { passive: true });
+      // Touch events - capture element reference to avoid stale closure
+      const lightboxElement = lightboxRef.current;
+      if (lightboxElement) {
+        lightboxElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+        lightboxElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+        lightboxElement.addEventListener('touchend', handleTouchEnd, { passive: true });
       }
       
       // Fullscreen change events
@@ -463,11 +460,10 @@ export const useLightbox = (images = [], options = {}) => {
         document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
         document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
         
-        if (lightboxRef.current) {
-          const element = lightboxRef.current;
-          element.removeEventListener('touchstart', handleTouchStart);
-          element.removeEventListener('touchmove', handleTouchMove);
-          element.removeEventListener('touchend', handleTouchEnd);
+        if (lightboxElement) {
+          lightboxElement.removeEventListener('touchstart', handleTouchStart);
+          lightboxElement.removeEventListener('touchmove', handleTouchMove);
+          lightboxElement.removeEventListener('touchend', handleTouchEnd);
         }
       };
     }

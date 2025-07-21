@@ -1,10 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 import { services } from '../data/constants';
 import { 
-  getDeviceType, 
-  getScreenCategory, 
-  isLowEndDevice, 
-  prefersReducedMotion,
+  getDeviceInfo,
+  getScreenCategory,
   canHover,
   hasPointerFine
 } from '../utils/deviceDetection';
@@ -14,15 +12,16 @@ import { useResponsiveImage } from '../hooks/useResponsiveImage';
 import '../styles/services-section.css';
 
 const ServicesSection = () => {
-  // Device capabilities detection
+  // Device capabilities detection - use cached info to prevent loops
+  const baseDeviceInfo = useMemo(() => getDeviceInfo(), []);
   const deviceInfo = useMemo(() => ({
-    type: getDeviceType(),
+    type: baseDeviceInfo,
     screenCategory: getScreenCategory(),
-    isLowEnd: isLowEndDevice(),
-    reducedMotion: prefersReducedMotion(),
+    isLowEnd: baseDeviceInfo.isLowEnd,
+    reducedMotion: baseDeviceInfo.reducedMotion,
     canHover: canHover(),
     hasPointerFine: hasPointerFine()
-  }), []);
+  }), [baseDeviceInfo]);
 
   // Grid configuration
   const gridOptions = useMemo(() => ({

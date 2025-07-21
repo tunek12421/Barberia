@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getDeviceType, isLowEndDevice, prefersReducedMotion } from '../utils/deviceDetection';
+import { getDeviceInfo } from '../utils/deviceDetection';
 
 export const useTouchGestures = (options = {}) => {
   const {
@@ -30,17 +30,8 @@ export const useTouchGestures = (options = {}) => {
     direction: null
   });
 
-  // Device capabilities
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion()
-    };
-  }, []);
+  // Device capabilities - use cached info to prevent loops
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
 
   // Calculate gesture metrics
   const calculateGesture = useCallback((endX, endY, endTime) => {
@@ -256,15 +247,7 @@ export const useTouchGestures = (options = {}) => {
         document.removeEventListener('mouseup', handleMouseUp);
       }
     };
-  }, [
-    deviceInfo.isMobile,
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp
-  ]);
+  }, []); // Remove all dependencies to prevent loops
 
   // Get current gesture info
   const getGestureInfo = useCallback(() => {
@@ -309,16 +292,7 @@ export const useCarouselGestures = (items = [], options = {}) => {
   const containerRef = useRef(null);
   const autoPlayRef = useRef(null);
 
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion()
-    };
-  }, []);
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
 
   // Navigation functions
   const goToSlide = useCallback((index) => {
@@ -351,7 +325,7 @@ export const useCarouselGestures = (items = [], options = {}) => {
         clearInterval(autoPlayRef.current);
       }
     };
-  }, [isAutoPlaying, deviceInfo.reducedMotion, items.length, nextSlide, autoPlayDelay]);
+  }, [isAutoPlaying, autoPlayDelay]); // Remove unstable dependencies
 
   // Pause auto-play on interaction
   const pauseAutoPlay = useCallback(() => {

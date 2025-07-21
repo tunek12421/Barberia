@@ -1,10 +1,8 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { ArrowRight, Shield, MapPin, Clock, Phone, Mail } from 'lucide-react';
 import { 
-  getDeviceType, 
-  getScreenCategory, 
-  isLowEndDevice, 
-  prefersReducedMotion,
+  getDeviceInfo,
+  getScreenCategory,
   canHover,
   hasPointerFine
 } from '../utils/deviceDetection';
@@ -16,20 +14,18 @@ const ContactSection = ({ setShowBookingModal }) => {
   const sectionRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
   
-  // Device detection for responsive behavior
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      screenCategory: getScreenCategory(),
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion(),
-      canHover: canHover(),
-      hasPointerFine: hasPointerFine()
-    };
-  }, []);
+  // Device detection for responsive behavior - use cached info to prevent loops
+  const baseDeviceInfo = useMemo(() => getDeviceInfo(), []);
+  const deviceInfo = useMemo(() => ({
+    isMobile: baseDeviceInfo.isMobile,
+    isTablet: baseDeviceInfo.isTablet,
+    isDesktop: baseDeviceInfo.isDesktop,
+    screenCategory: getScreenCategory(),
+    isLowEnd: baseDeviceInfo.isLowEnd,
+    reducedMotion: baseDeviceInfo.reducedMotion,
+    canHover: canHover(),
+    hasPointerFine: hasPointerFine()
+  }), [baseDeviceInfo]);
 
   // Contact actions for mobile
   const { handleCall, handleEmail, handleAddress } = useContactActions();

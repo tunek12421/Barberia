@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { getDeviceType, isLowEndDevice, prefersReducedMotion } from '../utils/deviceDetection';
+import { getDeviceInfo, getViewportDimensions } from '../utils/deviceDetection';
 
 // Hook for masonry layout with virtual scrolling and performance optimization
 export const useMasonry = (items = [], options = {}) => {
@@ -26,16 +26,8 @@ export const useMasonry = (items = [], options = {}) => {
   const itemHeightsRef = useRef(new Map());
 
   // Device capabilities
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
-    return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice(),
-      reducedMotion: prefersReducedMotion()
-    };
-  }, []);
+  // Use cached device info to prevent object recreation
+  const deviceInfo = useMemo(() => getDeviceInfo(), []);
 
   // Adjust settings for device performance
   const adjustedSettings = useMemo(() => ({
@@ -357,16 +349,15 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
   const loadPromises = useRef(new Map());
   const processedImagesRef = useRef(new Set());
 
-  const deviceInfo = useMemo(() => {
-    const type = getDeviceType();
+  // Use cached device info with additional pixel ratio
+  const baseDeviceInfo = useMemo(() => getDeviceInfo(), []);
+  const imageDeviceInfo = useMemo(() => {
+    const viewportData = getViewportDimensions();
     return {
-      isMobile: type.isMobile,
-      isTablet: type.isTablet,
-      isDesktop: type.isDesktop,
-      isLowEnd: isLowEndDevice(),
-      pixelRatio: window.devicePixelRatio || 1
+      ...baseDeviceInfo,
+      pixelRatio: viewportData.ratio
     };
-  }, []);
+  }, [baseDeviceInfo]);
 
   // Check WebP support
   const supportsWebP = useCallback(() => {
@@ -384,8 +375,8 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
     const url = new URL(originalSrc);
     
     // Adjust quality for device capabilities
-    const adjustedQuality = deviceInfo.isLowEnd ? Math.min(quality, 60) : quality;
-    const adjustedWidth = Math.ceil(width * deviceInfo.pixelRatio);
+    const adjustedQuality = imageDeviceInfo.isLowEnd ? Math.min(quality, 60) : quality;
+    const adjustedWidth = Math.ceil(width * imageDeviceInfo.pixelRatio);
     
     // Update URL parameters for Unsplash optimization
     url.searchParams.set('w', adjustedWidth.toString());
@@ -398,7 +389,7 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
     }
     
     return url.toString();
-  }, [quality, format, deviceInfo.isLowEnd, deviceInfo.pixelRatio, supportsWebP]);
+  }, [quality, format, imageDeviceInfo.isLowEnd, imageDeviceInfo.pixelRatio, supportsWebP]);
 
   // Preload image with promise caching
   const preloadImage = useCallback((src, width) => {
@@ -467,8 +458,7 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
   }, [loadedImages, failedImages]);
 
   // Memoize images to prevent unnecessary re-processing
-  const imageSignature = useMemo(() => images.map(img => img.url).join(','), [images]);
-  const stableImages = useMemo(() => images, [images, imageSignature]);
+  const stableImages = useMemo(() => images, [images]);
 
   // Load images with priority handling
   useEffect(() => {
@@ -487,8 +477,8 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
       const url = new URL(originalSrc);
       
       // Adjust quality for device capabilities
-      const adjustedQuality = deviceInfo.isLowEnd ? Math.min(quality, 60) : quality;
-      const adjustedWidth = Math.ceil(width * deviceInfo.pixelRatio);
+      const adjustedQuality = imageDeviceInfo.isLowEnd ? Math.min(quality, 60) : quality;
+      const adjustedWidth = Math.ceil(width * imageDeviceInfo.pixelRatio);
       
       // Update URL parameters for Unsplash optimization
       url.searchParams.set('w', adjustedWidth.toString());
@@ -539,7 +529,7 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
       }
       
       // Load remaining images
-      const batchSize = deviceInfo.isLowEnd ? 2 : 4;
+      const batchSize = imageDeviceInfo.isLowEnd ? 2 : 4;
       for (let i = 0; i < normalImages.length; i += batchSize) {
         if (!isMounted) break;
         
@@ -554,7 +544,7 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
         }
         
         // Small delay for low-end devices
-        if (deviceInfo.isLowEnd && isMounted) {
+        if (imageDeviceInfo.isLowEnd && isMounted) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
@@ -569,7 +559,7 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
     return () => {
       isMounted = false;
     };
-  }, [stableImages, deviceInfo.isLowEnd, deviceInfo.pixelRatio, failedImages, format, loadedImages, priority, quality, sizes?.desktop, supportsWebP]); // Add all missing dependencies
+  }, [stableImages, imageDeviceInfo.isLowEnd, imageDeviceInfo.pixelRatio, format, priority, quality, sizes?.desktop, supportsWebP]); // Remove loadedImages and failedImages to prevent loops
 
   return {
     loadedImages,
@@ -579,7 +569,7 @@ export const useGalleryImageLoading = (images = [], options = {}) => {
     getOptimizedSrc,
     generateBlurDataURL,
     getImageState,
-    deviceInfo,
+    deviceInfo: imageDeviceInfo,
     stats: {
       total: images.length,
       loaded: loadedImages.size,
