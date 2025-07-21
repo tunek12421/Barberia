@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { 
   Search, 
   X, 
@@ -152,6 +152,60 @@ const GalleryControls = ({
   onResetFilters 
 }) => {
   const [showFilters, setShowFilters] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
+  const [expandedSubcategories, setExpandedSubcategories] = useState(new Set());
+
+  // Toggle category expansion
+  const toggleCategory = useCallback((categoryKey) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryKey)) {
+        newSet.delete(categoryKey);
+        // Also collapse all subcategories of this category
+        setExpandedSubcategories(prevSub => {
+          const newSubSet = new Set(prevSub);
+          availableFilters.forEach(filter => {
+            if (filter.key === categoryKey && filter.children) {
+              filter.children.forEach(subfilter => {
+                newSubSet.delete(subfilter.key);
+              });
+            }
+          });
+          return newSubSet;
+        });
+      } else {
+        newSet.add(categoryKey);
+      }
+      return newSet;
+    });
+  }, [availableFilters]);
+
+  // Toggle subcategory expansion
+  const toggleSubcategory = useCallback((subcategoryKey) => {
+    setExpandedSubcategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(subcategoryKey)) {
+        newSet.delete(subcategoryKey);
+      } else {
+        newSet.add(subcategoryKey);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Auto-expand categories based on active filter
+  useEffect(() => {
+    if (activeFilter !== 'all') {
+      const filterParts = activeFilter.split('-');
+      if (filterParts.length >= 1) {
+        setExpandedCategories(prev => new Set(prev).add(filterParts[0]));
+      }
+      if (filterParts.length >= 2) {
+        const subcategoryKey = `${filterParts[0]}-${filterParts[1]}`;
+        setExpandedSubcategories(prev => new Set(prev).add(subcategoryKey));
+      }
+    }
+  }, [activeFilter]);
   
   return (
     <div className="premium-gallery__controls">
@@ -177,7 +231,7 @@ const GalleryControls = ({
           )}
         </div>
         
-        {/* Filters */}
+        {/* Hierarchical Filters */}
         <div className="premium-gallery__filter-group">
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -191,16 +245,95 @@ const GalleryControls = ({
           {showFilters && (
             <div className="premium-gallery__filter-dropdown">
               {availableFilters.map(filter => (
-                <button
-                  key={filter.value}
-                  onClick={() => onFilterChange(filter.value)}
-                  className={`premium-gallery__filter-option ${
-                    activeFilter === filter.value ? 'premium-gallery__filter-option--active' : ''
-                  }`}
-                >
-                  {filter.label}
-                  <span className="premium-gallery__filter-count">({filter.count})</span>
-                </button>
+                <div key={filter.key} className="premium-gallery__filter-category">
+                  {/* Category Level */}
+                  <div className="premium-gallery__filter-category-header">
+                    <button
+                      onClick={() => onFilterChange(filter.key)}
+                      className={`premium-gallery__filter-option premium-gallery__filter-option--category ${
+                        activeFilter === filter.key ? 'premium-gallery__filter-option--active' : ''
+                      }`}
+                    >
+                      {filter.label}
+                      <span className="premium-gallery__filter-count">({filter.count})</span>
+                    </button>
+                    
+                    {/* Expand/Collapse button for categories with children */}
+                    {filter.children && filter.children.length > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCategory(filter.key);
+                        }}
+                        className="premium-gallery__filter-expand"
+                        aria-label={expandedCategories.has(filter.key) ? 'Contraer' : 'Expandir'}
+                      >
+                        <ChevronDown 
+                          className={`premium-gallery__expand-icon ${
+                            expandedCategories.has(filter.key) ? 'premium-gallery__expand-icon--open' : ''
+                          }`} 
+                        />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Subcategory Level - Only show when expanded */}
+                  {filter.children && filter.children.length > 0 && expandedCategories.has(filter.key) && (
+                    <div className="premium-gallery__filter-subcategories">
+                      {filter.children.map(subfilter => (
+                        <div key={subfilter.key} className="premium-gallery__filter-subcategory">
+                          <div className="premium-gallery__filter-subcategory-header">
+                            <button
+                              onClick={() => onFilterChange(subfilter.key)}
+                              className={`premium-gallery__filter-option premium-gallery__filter-option--subcategory ${
+                                activeFilter === subfilter.key ? 'premium-gallery__filter-option--active' : ''
+                              }`}
+                            >
+                              ↳ {subfilter.label}
+                              <span className="premium-gallery__filter-count">({subfilter.count})</span>
+                            </button>
+                            
+                            {/* Expand/Collapse button for subcategories with children */}
+                            {subfilter.children && subfilter.children.length > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleSubcategory(subfilter.key);
+                                }}
+                                className="premium-gallery__filter-expand premium-gallery__filter-expand--small"
+                                aria-label={expandedSubcategories.has(subfilter.key) ? 'Contraer' : 'Expandir'}
+                              >
+                                <ChevronDown 
+                                  className={`premium-gallery__expand-icon premium-gallery__expand-icon--small ${
+                                    expandedSubcategories.has(subfilter.key) ? 'premium-gallery__expand-icon--open' : ''
+                                  }`} 
+                                />
+                              </button>
+                            )}
+                          </div>
+                          
+                          {/* Sub-subcategory Level - Only show when expanded */}
+                          {subfilter.children && subfilter.children.length > 0 && expandedSubcategories.has(subfilter.key) && (
+                            <div className="premium-gallery__filter-subsubcategories">
+                              {subfilter.children.map(subsubfilter => (
+                                <button
+                                  key={subsubfilter.key}
+                                  onClick={() => onFilterChange(subsubfilter.key)}
+                                  className={`premium-gallery__filter-option premium-gallery__filter-option--subsubcategory ${
+                                    activeFilter === subsubfilter.key ? 'premium-gallery__filter-option--active' : ''
+                                  }`}
+                                >
+                                  &nbsp;&nbsp;→ {subsubfilter.label}
+                                  <span className="premium-gallery__filter-count">({subsubfilter.count})</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
               <button
                 onClick={onResetFilters}

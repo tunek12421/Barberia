@@ -114,162 +114,545 @@ export const timeSlots = [
 ];
 
 export const galleryImages = [
-  // CORTES - Imágenes específicas de cortes de pelo
+  // CORTES CLÁSICOS -> FADE -> LOW FADE (Degradado Bajo)
   { 
-    url: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&h=600&fit=crop&q=80',
-    category: 'corte',
-    service: 'Corte Ejecutivo',
-    description: 'Elegancia contemporánea',
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Low-Fade-Haircut-1024x1024.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'bajo',
+    service: 'Low Fade Clásico',
+    description: 'Degradado bajo tradicional',
     featured: true
   },
   { 
-    url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=800&fit=crop&q=80',
-    category: 'corte',
-    service: 'Fade Artístico',
-    description: 'Precisión milimétrica'
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Low-Taper-Fade-1024x1024.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'bajo',
+    service: 'Low Taper Fade',
+    description: 'Degradado bajo con taper'
   },
   { 
-    url: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&h=600&fit=crop&q=80',
-    category: 'corte',
-    service: 'Corte Clásico',
-    description: 'Estilo atemporal'
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Low-Skin-Fade-1024x1024.png',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'bajo',
+    service: 'Low Skin Fade',
+    description: 'Degradado bajo a piel'
   },
   { 
-    url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=850&h=650&fit=crop&q=80',
-    category: 'corte',
-    service: 'Modern Fade',
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Low-Bald-Fade-1024x1024.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'bajo',
+    service: 'Low Bald Fade',
+    description: 'Degradado bajo rapado'
+  },
+
+  // CORTES CLÁSICOS -> FADE -> MID FADE (Degradado Medio)
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Medium-Low-Fade-1024x972.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'medio',
+    service: 'Medium Low Fade',
+    description: 'Degradado medio-bajo',
+    featured: true
+  },
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Mid-Taper-Fade-Cut.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'medio',
+    service: 'Mid Taper Fade',
+    description: 'Degradado medio con taper'
+  },
+
+  // CORTES CLÁSICOS -> FADE -> HIGH FADE (Degradado Alto)
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/High-Taper-Fade-Haircut.png',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'alto',
+    service: 'High Taper Fade',
+    description: 'Degradado alto con taper',
+    featured: true
+  },
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/High-Fade-Takuache-Haircut.png',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'alto',
+    service: 'High Fade Takuache',
+    description: 'Estilo takuache moderno'
+  },
+
+  // CORTES CLÁSICOS -> FADE -> FADE GENERAL
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Fade-HairCut-1-1024x1024.png',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'general',
+    service: 'Fade Clásico',
+    description: 'El fade tradicional perfecto',
+    featured: true
+  },
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Fade-HairCut-2-1024x1024.png',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'general',
+    service: 'Variaciones de Fade',
+    description: 'Múltiples estilos de degradado'
+  },
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Fade-HairCut-3-1-1024x1024.png',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'general',
+    service: 'Fade Moderno',
     description: 'Tendencia contemporánea'
   },
-  {
+
+  // CORTES CLÁSICOS -> FADE -> TEXTURED FADE
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Fade-Cut-Curly-Hair.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'texturizado',
+    service: 'Curly Fade',
+    description: 'Fade para cabello rizado',
+    featured: true
+  },
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Wavy-Fade-Haircut-1.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'texturizado',
+    service: 'Wavy Fade',
+    description: 'Fade para cabello ondulado'
+  },
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Textured-Fade-Cut-1.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'texturizado',
+    service: 'Textured Fade',
+    description: 'Fade con textura definida'
+  },
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/fluffy-fade-haircut.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'texturizado',
+    service: 'Fluffy Fade',
+    description: 'Fade con volumen esponjoso'
+  },
+
+  // CORTES CLÁSICOS -> FADE -> DROP FADE
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Drop-Fade-Cut-1.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'drop',
+    service: 'Drop Fade',
+    description: 'Degradado con caída curva',
+    featured: true
+  },
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Drop-Fade-Cut-2.jpg',
+    category: 'clasicos',
+    subcategory: 'fade',
+    subsubcategory: 'drop',
+    service: 'Drop Fade Variación',
+    description: 'Estilo drop fade alternativo'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> BÁSICO
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Undercut-Haircut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'basico',
+    service: 'Undercut Clásico',
+    description: 'El undercut tradicional',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Short-Undercut-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'basico',
+    service: 'Undercut Corto',
+    description: 'Undercut con cabello corto arriba'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Medium-Hair-Undercut-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'basico',
+    service: 'Undercut Mediano',
+    description: 'Longitud media en la parte superior'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Long-Hair-Undercut-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'basico',
+    service: 'Undercut Cabello Largo',
+    description: 'Undercut con cabello largo arriba'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> CON FADE
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/High-Fade-Undercut-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'con-fade',
+    service: 'High Fade Undercut',
+    description: 'Undercut con degradado alto',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Undercut-Low-Fade-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'con-fade',
+    service: 'Low Fade Undercut',
+    description: 'Undercut con degradado bajo'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Undercut-Fade-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'con-fade',
+    service: 'Undercut Fade General',
+    description: 'Undercut con degradado clásico'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> DESCONECTADO
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Disconnected-Undercut-Man.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'desconectado',
+    service: 'Disconnected Undercut',
+    description: 'Undercut desconectado marcado',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Side-Part-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'desconectado',
+    service: 'Side Part Undercut',
+    description: 'Undercut con raya al costado'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> ESTILO RETRO
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Pompadour-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'retro',
+    service: 'Pompadour Undercut',
+    description: 'Undercut con pompadour',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Slick-Back-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'retro',
+    service: 'Slick Back Undercut',
+    description: 'Undercut peinado hacia atrás'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Hard-Part-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'retro',
+    service: 'Hard Part Undercut',
+    description: 'Undercut con raya marcada'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> MODERNO
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/03/Quiff-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'moderno',
+    service: 'Quiff Undercut',
+    description: 'Undercut con quiff moderno',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Comb-Over-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'moderno',
+    service: 'Comb Over Undercut',
+    description: 'Undercut peinado al costado'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Comb-Over-Undercut-Hairstyle.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'moderno',
+    service: 'Comb Over Undercut Variante',
+    description: 'Estilo comb over alternativo'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> CON TEXTURA
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Textured-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'texturizado',
+    service: 'Textured Undercut',
+    description: 'Undercut con textura definida',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Medium-Messy-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'texturizado',
+    service: 'Messy Undercut',
+    description: 'Undercut desestructurado'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2025/06/Curly-Undercut-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'texturizado',
+    service: 'Curly Undercut',
+    description: 'Undercut para cabello rizado'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> CABELLO RIZADO
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Afro-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'rizado',
+    service: 'Afro Undercut',
+    description: 'Undercut estilo afro',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Twisted-Locs-Undercut-Hairstyle.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'rizado',
+    service: 'Twisted Locs Undercut',
+    description: 'Undercut con locs retorcidos'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> ESTILOS ÚNICOS
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Man-Bun-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'unicos',
+    service: 'Man Bun Undercut',
+    description: 'Undercut con moño masculino',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Mohawk-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'unicos',
+    service: 'Mohawk Undercut',
+    description: 'Undercut estilo mohawk'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Bowl-Cut-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'unicos',
+    service: 'Bowl Cut Undercut',
+    description: 'Undercut con corte de tazón'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Mullet-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'unicos',
+    service: 'Mullet Undercut',
+    description: 'Undercut estilo mullet'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> ESPECIALES
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Curtain-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'especiales',
+    service: 'Curtain Undercut',
+    description: 'Undercut con flequillo cortina',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Undercut-Middle-Part-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'especiales',
+    service: 'Middle Part Undercut',
+    description: 'Undercut con raya al medio'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Side-Swept-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'especiales',
+    service: 'Side-Swept Undercut',
+    description: 'Undercut peinado lateral'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Spiky-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'especiales',
+    service: 'Spiky Undercut',
+    description: 'Undercut con puntas'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> CON DISEÑOS
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Undercut-Design-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'disenos',
+    service: 'Undercut con Diseños',
+    description: 'Undercut con patrones grabados',
+    featured: true
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> ESTILIZADOS
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Textured-Crop-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'estilizados',
+    service: 'Textured Crop Undercut',
+    description: 'Undercut con crop texturizado',
+    featured: true
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2023/12/Tapered-Undercut.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'estilizados',
+    service: 'Tapered Undercut',
+    description: 'Undercut degradado suave'
+  },
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/01/Messy-Slicked-Back-Undercut-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'estilizados',
+    service: 'Messy Slick Back Undercut',
+    description: 'Slick back desestructurado'
+  },
+
+  // CORTES CLÁSICOS -> UNDERCUT -> CON BARBA
+  { 
+    url: 'https://www.thefashionisto.com/wp-content/uploads/2024/10/Wavy-Undercut-Hairstyle-Men.jpg',
+    category: 'clasicos',
+    subcategory: 'undercut',
+    subsubcategory: 'con-barba',
+    service: 'Undercut + Barba',
+    description: 'Undercut ondulado con barba',
+    featured: true
+  },
+
+  // CORTES CLÁSICOS -> POMPADOUR (Placeholders)
+  { 
     url: 'https://images.unsplash.com/photo-1614026480577-85ac93ad1dc3?w=900&h=600&fit=crop&q=80',
-    category: 'corte',
-    service: 'Pompadour Style',
-    description: 'Elegancia vintage',
+    category: 'clasicos',
+    subcategory: 'pompadour',
+    subsubcategory: 'clasico',
+    service: 'Pompadour Clásico',
+    description: 'Volumen hacia arriba frontal',
     featured: true
   },
-  {
+
+  // CORTES CLÁSICOS -> QUIFF (Placeholders)
+  { 
     url: 'https://images.unsplash.com/photo-1574015974293-817f0ebebb74?w=750&h=850&fit=crop&q=80',
-    category: 'corte',
-    service: 'Side Part Classic',
-    description: 'Elegancia tradicional'
+    category: 'clasicos',
+    subcategory: 'quiff',
+    subsubcategory: 'clasico',
+    service: 'Quiff Clásico',
+    description: 'Pompadour menos estructurado',
+    featured: true
   },
-  {
+
+  // CORTES CLÁSICOS -> SIDE PART (Placeholders)
+  { 
     url: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=850&h=650&fit=crop&q=80',
-    category: 'corte',
-    service: 'Slick Back',
-    description: 'Estilo ejecutivo'
+    category: 'clasicos',
+    subcategory: 'side-part',
+    subsubcategory: 'clasico',
+    service: 'Side Part Clásico',
+    description: 'Raya al lado tradicional',
+    featured: true
   },
-  {
+
+  // CORTES MODERNOS -> BUZZ CUT (Placeholders)
+  { 
+    url: 'https://fadehaircut.net/wp-content/uploads/2023/10/Fade-Buzz-Cut-1-683x1024.png',
+    category: 'modernos',
+    subcategory: 'buzz-cut',
+    subsubcategory: 'clasico',
+    service: 'Buzz Cut',
+    description: 'Muy corto en toda la cabeza',
+    featured: true
+  },
+
+  // CORTES MODERNOS -> CREW CUT (Placeholders)
+  { 
     url: 'https://images.unsplash.com/photo-1594736797933-d0d39b4e5db0?w=650&h=850&fit=crop&q=80',
-    category: 'corte',
-    service: 'Comb Over Fade',
-    description: 'Elegancia moderna'
+    category: 'modernos',
+    subcategory: 'crew-cut',
+    subsubcategory: 'clasico',
+    service: 'Crew Cut',
+    description: 'Corto con algo más de largo arriba',
+    featured: true
   },
 
-  // BARBAS - Imágenes específicas de barbas y bigotes
+  // CORTES MODERNOS -> TEXTURED CROP (Placeholders)
   { 
-    url: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&h=600&fit=crop&q=80',
-    category: 'barba',
-    service: 'Sculpting Completo',
-    description: 'Maestría en cada trazo',
+    url: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&h=600&fit=crop&q=80',
+    category: 'modernos',
+    subcategory: 'textured-crop',
+    subsubcategory: 'clasico',
+    service: 'Textured Crop',
+    description: 'Corte texturizado desestructurado',
     featured: true
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1632781297772-2bd01f8117c2?w=600&h=800&fit=crop&q=80',
-    category: 'barba',
-    service: 'Beard Sculpting',
-    description: 'Contornos perfectos'
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1566207531781-b04adb1e39ce?w=900&h=700&fit=crop&q=80',
-    category: 'barba',
-    service: 'Full Beard Service',
-    description: 'Cuidado completo'
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=750&h=850&fit=crop&q=80',
-    category: 'barba',
-    service: 'Goatee Perfection',
-    description: 'Estilo personalizado'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=800&h=700&fit=crop&q=80',
-    category: 'barba',
-    service: 'Van Dyke Style',
-    description: 'Distinción clásica',
-    featured: true
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?w=850&h=600&fit=crop&q=80',
-    category: 'barba',
-    service: 'Balbo Styling',
-    description: 'Sofisticación italiana'
   },
 
-  // AFEITADO - Imágenes específicas de afeitado tradicional
+  // CORTES MODERNOS -> FRENCH CROP (Placeholders)
   { 
-    url: 'https://images.unsplash.com/photo-1553521041-d168abd31de3?w=800&h=800&fit=crop&q=80',
-    category: 'afeitado',
-    service: 'Afeitado Real',
-    description: 'Tradición y perfección'
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1588771598044-6d6065fb7d4d?w=900&h=600&fit=crop&q=80',
-    category: 'afeitado',
-    service: 'Straight Razor',
-    description: 'La experiencia definitiva',
+    url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=850&h=650&fit=crop&q=80',
+    category: 'modernos',
+    subcategory: 'french-crop',
+    subsubcategory: 'clasico',
+    service: 'French Crop',
+    description: 'Flequillo hacia adelante',
     featured: true
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1596638919734-8ac77de11018?w=600&h=850&fit=crop&q=80',
-    category: 'afeitado',
-    service: 'Hot Towel Service',
-    description: 'Relajación total'
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=750&fit=crop&q=80',
-    category: 'afeitado',
-    service: 'Classic Shave',
-    description: 'Tradición pura'
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=1200&h=800&fit=crop',
-    category: 'afeitado',
-    service: 'Precision Shave',
-    description: 'Perfección en cada pasada'
   },
 
-  // VIP - Ambiente y experiencias de lujo en barbería
+  // CORTES MODERNOS -> MAN BUN (Placeholders)
   { 
-    url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=900&fit=crop&q=80',
-    category: 'vip',
-    service: 'Experiencia Total',
-    description: 'Lujo sin compromisos',
-    featured: true
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1582771498000-8ad44e6c84db?w=700&h=500&fit=crop&q=80',
-    category: 'vip',
-    service: 'Tratamiento Premium',
-    description: 'Cuidado integral'
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=800&h=900&fit=crop&q=80',
-    category: 'vip',
-    service: 'Royal Treatment',
-    description: 'Experiencia de lujo'
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1624052929685-35bc5b67f4b4?w=950&h=650&fit=crop&q=80',
-    category: 'vip',
-    service: 'Executive Package',
-    description: 'Para el profesional exigente'
-  },
-  { 
-    url: 'https://images.unsplash.com/photo-1598887142962-a7d2f6b8ad55?w=650&h=800&fit=crop&q=80',
-    category: 'vip',
-    service: 'Platinum Experience',
-    description: 'El máximo nivel',
+    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=700&fit=crop&q=80',
+    category: 'modernos',
+    subcategory: 'man-bun',
+    subsubcategory: 'clasico',
+    service: 'Man Bun',
+    description: 'Cabello largo recogido',
     featured: true
   }
 ];

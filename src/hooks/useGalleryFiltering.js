@@ -27,51 +27,142 @@ export const useGalleryFiltering = (items = [], options = {}) => {
 
 
 
-  // Extract available filters from items - simplified to avoid infinite loops
+  // Extract hierarchical filters from items
   useEffect(() => {
-    const filterMap = new Map();
+    const hierarchicalFilters = new Map();
     
-    // Simple label mapping
-    const getLabel = (value) => {
+    // Label mappings for categories
+    const getCategoryLabel = (value) => {
       const labels = {
-        'corte': 'Cortes',
-        'barba': 'Barbas', 
-        'vip': 'VIP',
-        'afeitado': 'Afeitados',
-        'all': 'Todo'
+        'clasicos': 'Cortes Clásicos',
+        'modernos': 'Cortes Modernos',
+        'all': 'Todos los Cortes'
+      };
+      return labels[value] || value.charAt(0).toUpperCase() + value.slice(1);
+    };
+
+    const getSubcategoryLabel = (value) => {
+      const labels = {
+        'fade': 'Fade (Degradado)',
+        'undercut': 'Undercut',
+        'pompadour': 'Pompadour',
+        'quiff': 'Quiff',
+        'side-part': 'Side Part',
+        'buzz-cut': 'Buzz Cut',
+        'crew-cut': 'Crew Cut',
+        'textured-crop': 'Textured Crop',
+        'french-crop': 'French Crop',
+        'man-bun': 'Man Bun'
+      };
+      return labels[value] || value.charAt(0).toUpperCase() + value.slice(1);
+    };
+
+    const getSubsubcategoryLabel = (value) => {
+      const labels = {
+        // Fade subcategories
+        'bajo': 'Degradado Bajo',
+        'medio': 'Degradado Medio', 
+        'alto': 'Degradado Alto',
+        'general': 'Fade General',
+        'texturizado': 'Texturizado',
+        'drop': 'Drop Fade',
+        // Undercut subcategories
+        'basico': 'Básico',
+        'con-fade': 'Con Fade',
+        'desconectado': 'Desconectado',
+        'retro': 'Estilo Retro',
+        'moderno': 'Moderno',
+        'rizado': 'Cabello Rizado',
+        'unicos': 'Estilos Únicos',
+        'especiales': 'Especiales',
+        'disenos': 'Con Diseños',
+        'estilizados': 'Estilizados',
+        'con-barba': 'Con Barba',
+        // General
+        'clasico': 'Clásico'
       };
       return labels[value] || value.charAt(0).toUpperCase() + value.slice(1);
     };
     
     // Add default 'all' filter
-    filterMap.set('all', {
+    hierarchicalFilters.set('all', {
       key: 'all',
-      label: 'Todo',
+      label: 'Todos los Cortes',
       count: items.length,
-      description: 'Mostrar toda la galería'
+      description: 'Mostrar toda la galería',
+      level: 'root'
     });
     
-    // Extract filters from items
+    // Build hierarchical structure
     items.forEach(item => {
-      const filterValue = item[filterKey];
-      if (filterValue && filterValue !== 'all') {
-        const existing = filterMap.get(filterValue);
-        if (existing) {
-          existing.count++;
-        } else {
-          filterMap.set(filterValue, {
-            key: filterValue,
-            label: getLabel(filterValue),
-            count: 1,
-            description: `Galería de ${filterValue}`
+      const { category, subcategory, subsubcategory } = item;
+      
+      // Category level
+      if (category) {
+        const categoryKey = category;
+        if (!hierarchicalFilters.has(categoryKey)) {
+          hierarchicalFilters.set(categoryKey, {
+            key: categoryKey,
+            label: getCategoryLabel(category),
+            count: 0,
+            description: `Ver ${getCategoryLabel(category)}`,
+            level: 'category',
+            children: new Map()
           });
+        }
+        hierarchicalFilters.get(categoryKey).count++;
+        
+        // Subcategory level
+        if (subcategory) {
+          const subcategoryKey = `${category}-${subcategory}`;
+          const parentCategory = hierarchicalFilters.get(categoryKey);
+          
+          if (!parentCategory.children.has(subcategoryKey)) {
+            parentCategory.children.set(subcategoryKey, {
+              key: subcategoryKey,
+              label: getSubcategoryLabel(subcategory),
+              count: 0,
+              description: `Ver ${getSubcategoryLabel(subcategory)}`,
+              level: 'subcategory',
+              parent: categoryKey,
+              children: new Map()
+            });
+          }
+          parentCategory.children.get(subcategoryKey).count++;
+          
+          // Sub-subcategory level
+          if (subsubcategory) {
+            const subsubcategoryKey = `${category}-${subcategory}-${subsubcategory}`;
+            const parentSubcategory = parentCategory.children.get(subcategoryKey);
+            
+            if (!parentSubcategory.children.has(subsubcategoryKey)) {
+              parentSubcategory.children.set(subsubcategoryKey, {
+                key: subsubcategoryKey,
+                label: getSubsubcategoryLabel(subsubcategory),
+                count: 0,
+                description: `Ver ${getSubsubcategoryLabel(subsubcategory)}`,
+                level: 'subsubcategory',
+                parent: subcategoryKey,
+                grandparent: categoryKey
+              });
+            }
+            parentSubcategory.children.get(subsubcategoryKey).count++;
+          }
         }
       }
     });
     
-    const newFilters = Array.from(filterMap.values());
+    // Convert Maps to Arrays for easier rendering
+    const processFilters = (filterMap) => {
+      return Array.from(filterMap.values()).map(filter => ({
+        ...filter,
+        children: filter.children ? processFilters(filter.children) : []
+      }));
+    };
+    
+    const newFilters = processFilters(hierarchicalFilters);
     setAvailableFilters(newFilters);
-  }, [items, filterKey]); // Remove problematic dependencies
+  }, [items, filterKey]);
 
 
 
@@ -120,12 +211,31 @@ export const useGalleryFiltering = (items = [], options = {}) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const stableSearchFields = useMemo(() => searchFields, []);
 
-  // Apply filters when key dependencies change
+  // Apply hierarchical filters when key dependencies change
   useEffect(() => {
     const result = items.filter(item => {
-      // Filter by category
-      if (activeFilter !== 'all' && item[filterKey] !== activeFilter) {
-        return false;
+      // Handle hierarchical filtering
+      if (activeFilter !== 'all') {
+        const filterParts = activeFilter.split('-');
+        
+        if (filterParts.length === 1) {
+          // Category level filter (e.g., 'clasicos', 'modernos')
+          if (item.category !== filterParts[0]) {
+            return false;
+          }
+        } else if (filterParts.length === 2) {
+          // Subcategory level filter (e.g., 'clasicos-fade')
+          if (item.category !== filterParts[0] || item.subcategory !== filterParts[1]) {
+            return false;
+          }
+        } else if (filterParts.length === 3) {
+          // Sub-subcategory level filter (e.g., 'clasicos-fade-bajo')
+          if (item.category !== filterParts[0] || 
+              item.subcategory !== filterParts[1] || 
+              item.subsubcategory !== filterParts[2]) {
+            return false;
+          }
+        }
       }
       
       // Filter by search
