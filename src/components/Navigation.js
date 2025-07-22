@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { getDeviceInfo } from '../utils/deviceDetection';
-import { useNavigation } from '../hooks/useNavigation';
+import { useScrollEffects } from '../hooks/useScrollEffects';
 import '../styles/navigation.css';
 
 const Navigation = ({ 
@@ -14,8 +14,8 @@ const Navigation = ({
   const firstMenuItemRef = useRef(null);
   const lastMenuItemRef = useRef(null);
   
-  // Use custom navigation hook
-  const { isScrolled, scrollToSection } = useNavigation();
+  // Use custom scroll effects hook (includes navigation + loading effects)
+  const { isScrolled, activeSection, scrollToSection } = useScrollEffects();
   
   // Use cached device info to avoid recalculation
   const baseDeviceInfo = useMemo(() => getDeviceInfo(), []);
@@ -160,7 +160,7 @@ const Navigation = ({
               <li key={item.id} className="nav-menu-item" role="none">
                 <a
                   href={item.href}
-                  className="nav-menu-link"
+                  className={`nav-menu-link ${activeSection === item.id ? 'active' : ''}`}
                   role="menuitem"
                   onClick={(e) => {
                     e.preventDefault();
@@ -235,7 +235,7 @@ const Navigation = ({
               <a
                 ref={index === 0 ? firstMenuItemRef : index === navItems.length - 1 ? lastMenuItemRef : null}
                 href={item.href}
-                className="mobile-menu-link"
+                className={`mobile-menu-link ${activeSection === item.id ? 'active' : ''}`}
                 role="menuitem"
                 tabIndex={isMenuOpen ? 0 : -1}
                 onClick={(e) => {

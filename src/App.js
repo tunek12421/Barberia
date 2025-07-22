@@ -10,6 +10,7 @@ import ContactSection from './components/ContactSection';
 import BookingModal from './components/BookingModal';
 import Footer from './components/Footer';
 import './styles/animations.css';
+import './styles/loading-effects.css';
 
 const BarberiaUltraPremium = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

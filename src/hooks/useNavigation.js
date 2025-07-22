@@ -3,7 +3,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 export const useNavigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollDirection, setScrollDirection] = useState('up');
+  const [activeSection, setActiveSection] = useState('inicio');
   const lastScrollYRef = useRef(0);
+
+  // Definir las secciones que queremos trackear
+  const sections = ['inicio', 'servicios', 'maestros', 'galeria', 'contacto'];
 
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY;
@@ -18,8 +22,34 @@ export const useNavigation = () => {
       setScrollDirection('up');
     }
     
+    // Detectar sección activa
+    const navHeight = document.querySelector('.navigation')?.offsetHeight || 0;
+    const scrollPosition = currentScrollY + navHeight + 100; // Offset para detectar la sección
+    
+    let currentActiveSection = 'inicio';
+    
+    // Revisar cada sección para ver cuál está en el viewport
+    for (const sectionId of sections) {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const elementTop = element.offsetTop;
+        const elementBottom = elementTop + element.offsetHeight;
+        
+        if (scrollPosition >= elementTop && scrollPosition < elementBottom) {
+          currentActiveSection = sectionId;
+          break;
+        }
+      }
+    }
+    
+    // Caso especial: si estamos al final de la página, activar la última sección
+    if (currentScrollY + window.innerHeight >= document.documentElement.scrollHeight - 10) {
+      currentActiveSection = sections[sections.length - 1];
+    }
+    
+    setActiveSection(currentActiveSection);
     lastScrollYRef.current = currentScrollY;
-  }, []); // Stable callback with no dependencies
+  }, [sections]); // Incluir sections como dependencia
 
   useEffect(() => {
     let timeoutId = null;
@@ -60,6 +90,7 @@ export const useNavigation = () => {
   return {
     isScrolled,
     scrollDirection,
+    activeSection,
     scrollToSection
   };
 };

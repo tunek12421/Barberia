@@ -33,9 +33,9 @@
   --touch-target-comfortable: 48px;
   
   /* Animation Timing */
-  --barber-transition-fast: 0.2s ease-out;
-  --barber-transition-medium: 0.4s ease-out;
-  --barber-transition-slow: 0.6s ease-out;
+  --barber-transition-fast: 0.3s ease-out;
+  --barber-transition-medium: 0.5s ease-out;
+  --barber-transition-slow: 0.8s ease-out;
   
   /* Z-Index Scale */
   --z-barber-card: 1;
@@ -44,12 +44,67 @@
   --z-modal-content: 101;
 }
 
-/* Barbers Section Container */
+/* Barbers Section Container - Suave Cinematic */
 .barbers-section {
   position: relative;
   padding-block: var(--barber-section-padding);
   overflow: hidden;
   container-type: inline-size;
+  opacity: 0;
+  transform: translateY(35px) rotateX(6deg) scale(0.95);
+  filter: blur(10px) hue-rotate(8deg) brightness(0.8);
+  clip-path: polygon(0 100%, 20% 90%, 80% 90%, 100% 100%, 100% 100%, 0 100%);
+  transition: 
+    opacity 2.8s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 3.2s cubic-bezier(0.23, 1, 0.32, 1),
+    filter 2.5s cubic-bezier(0.23, 1, 0.32, 1),
+    clip-path 3.8s cubic-bezier(0.23, 1, 0.32, 1);
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.barbers-section.loaded {
+  opacity: 1;
+  transform: translateY(0) rotateX(0deg) scale(1);
+  filter: blur(0px) hue-rotate(0deg) brightness(1);
+  clip-path: polygon(0 0%, 100% 0%, 100% 100%, 0 100%);
+}
+
+/* Suave light sweep */
+.barbers-section::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -30%;
+  width: 160%;
+  height: 160%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 47%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.02) 53%,
+    transparent 100%
+  );
+  transform: rotate(-20deg) scale(0);
+  z-index: 1;
+  pointer-events: none;
+  transition: transform 5s cubic-bezier(0.23, 1, 0.32, 1) 2s;
+}
+
+.barbers-section.loaded::before {
+  transform: rotate(200deg) scale(1);
+}
+
+@keyframes sectionFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .barbers-section__container {
@@ -62,6 +117,17 @@
 .barbers-section__header {
   margin-block-end: var(--barber-section-padding);
   text-align: start;
+}
+
+@keyframes headerFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .barbers-section__badge {
@@ -183,7 +249,7 @@
   outline: none;
 }
 
-/* Barber Card */
+/* Barber Card - Suave 3D Glassmorphism */
 .barber-card {
   position: relative;
   inline-size: 100%;
@@ -196,15 +262,115 @@
   transition: 
     transform var(--barber-transition-fast),
     border-color var(--barber-transition-medium),
-    box-shadow var(--barber-transition-medium);
+    box-shadow var(--barber-transition-medium),
+    opacity 2.5s cubic-bezier(0.23, 1, 0.32, 1),
+    filter 2.2s cubic-bezier(0.23, 1, 0.32, 1);
   z-index: var(--z-barber-card);
+  opacity: 0;
+  transform: translateY(50px) translateZ(-80px) rotateY(15deg) rotateX(8deg) scale(0.8);
+  filter: blur(8px) saturate(0.6) sepia(0.1);
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+  perspective: 700px;
+  transform-style: preserve-3d;
+}
+
+/* Efectos de carga escalonados suaves */
+.barber-card:nth-child(1) { 
+  transition-delay: 0.5s; 
+  transform: translateY(50px) translateZ(-80px) rotateY(15deg) rotateX(8deg) scale(0.8);
+}
+.barber-card:nth-child(2) { 
+  transition-delay: 1s; 
+  transform: translateY(60px) translateZ(-70px) rotateY(-12deg) rotateX(10deg) scale(0.75);
+}
+.barber-card:nth-child(3) { 
+  transition-delay: 1.5s; 
+  transform: translateY(70px) translateZ(-60px) rotateY(10deg) rotateX(6deg) scale(0.85);
+}
+.barber-card:nth-child(4) { 
+  transition-delay: 2s; 
+  transform: translateY(80px) translateZ(-50px) rotateY(-15deg) rotateX(12deg) scale(0.7);
+}
+
+.barber-card.loaded {
+  opacity: 1;
+  transform: translateY(0) translateZ(0) rotateY(0deg) rotateX(0deg) scale(1);
+  filter: blur(0px) saturate(1) sepia(0);
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+}
+
+/* Suave shimmer effect */
+.barber-card::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -30%;
+  width: 160%;
+  height: 160%;
+  background: linear-gradient(
+    45deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.05) 45%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 55%,
+    transparent 60%
+  );
+  transform: translateX(-80%) translateY(-80%) rotate(-15deg) scale(0);
+  z-index: 10;
+  pointer-events: none;
+  transition: transform 4.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.barber-card.loaded::before {
+  transform: translateX(80%) translateY(80%) rotate(15deg) scale(1.5);
+}
+
+/* Suave energy field expansion */
+.barber-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 80%
+  );
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 15px rgba(255, 255, 255, 0.2),
+    0 0 30px rgba(255, 255, 255, 0.1),
+    0 0 45px rgba(255, 255, 255, 0.05);
+  z-index: 5;
+  pointer-events: none;
+  transition: transform 4.2s cubic-bezier(0.23, 1, 0.32, 1), opacity 4.2s ease-out;
+}
+
+.barber-card.loaded::after {
+  transform: translate(-50%, -50%) scale(12);
+  opacity: 0;
+}
+
+@keyframes barberCardFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .barber-card:hover,
 .barber-card:focus-within {
-  transform: translateY(-4px);
+  transform: translateY(-1px);
   border-color: rgb(255 255 255 / 0.3);
-  box-shadow: 0 8px 32px rgb(0 0 0 / 0.3);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.2);
 }
 
 /* Barber Avatar */
@@ -221,17 +387,18 @@
   block-size: 100%;
   object-fit: cover;
   object-position: center top;
-  filter: grayscale(100%) contrast(1.1);
+  filter: grayscale(100%) contrast(1.1) !important;
   transition: 
-    filter var(--barber-transition-slow),
-    transform var(--barber-transition-slow);
+    filter 8s cubic-bezier(0.23, 1, 0.32, 1) !important,
+    transform var(--barber-transition-slow) !important;
   will-change: transform, filter;
 }
 
 .barber-card:hover .barber-card__avatar,
 .barber-card:focus-within .barber-card__avatar {
-  filter: grayscale(0%) contrast(1);
-  transform: scale(1.05);
+  filter: grayscale(0%) contrast(1) !important;
+  transform: scale(1.02) !important;
+  transition: all 1.6s ease !important;
 }
 
 .barber-card__avatar-overlay {
@@ -561,7 +728,7 @@
   }
   
   .barber-card:hover {
-    transform: translateY(-6px);
+    transform: translateY(-2px);
   }
 }
 
@@ -593,7 +760,10 @@
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  .barber-card,
+  .barbers-carousel__track,
+  .barber-modal,
+  .barber-modal__content {
     transition: none !important;
     animation: none !important;
   }
